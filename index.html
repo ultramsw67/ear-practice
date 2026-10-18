@@ -42,7 +42,7 @@ body {
   font-size: var(--fs); line-height: 1.55; word-break: keep-all; letter-spacing: -0.01em;
   font-feature-settings: "tnum";
 }
-.wrap { max-width: 520px; margin: 0 auto; padding: 12px 16px 40px; }
+.wrap { max-width: 520px; margin: 0 auto; padding: 12px 16px 104px; } /* 아래 여백: 수드 도우미 단추에 가리지 않게 */
 /* 머리 */
 header { display: flex; align-items: center; justify-content: space-between; height: 56px; margin-bottom: 8px; }
 .brand { display: flex; align-items: center; gap: 10px; }
@@ -180,10 +180,9 @@ input[type="range"] { width: 100%; height: 40px; accent-color: var(--accent); }
 .ans small { font-size: 0.7em; font-weight: 600; }
 .note small { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 0.62em; font-weight: 600; color: var(--sub); }
 .helpbtn { white-space: nowrap; min-height: 48px; padding: 8px 14px; font-size: 0.88em; color: var(--sub); }
-.overlay { position: fixed; inset: 0; background: rgba(10,14,20,.55); display: none; align-items: flex-end; justify-content: center; z-index: 40; padding: 16px; }
-.overlay.on { display: flex; }
-.sheet { width: 100%; max-width: 520px; background: var(--surface); border-radius: 22px; padding: 22px 20px; animation: fade .25s ease; }
-.sheet .row { margin-top: 12px; }
+/* 수드 도우미 창 안 예시 단추 (창은 늘 흰 바탕이라 색을 고정) */
+.sg-demo { display: flex; gap: 8px; margin: 10px 0 4px; }
+.sg-demo button { flex: 1; min-height: 52px; padding: 8px 10px; border: 2px solid #3450d1; background: #e8ecfc; color: #1f2a44; font: 700 16px/1.3 "Pretendard Variable", Pretendard, "Malgun Gothic", sans-serif; border-radius: 14px; }
 /* 선율 기억 */
 .mdots { position: absolute; left: 24px; right: 24px; top: 50%; transform: translateY(-50%); display: flex; justify-content: space-between; align-items: center; }
 .mdots i { width: 22px; height: 22px; border-radius: 50%; background: var(--surface-2); border: 2px solid var(--line); transition: background .1s, transform .1s; }
@@ -499,30 +498,27 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
       <div class="group"><span class="label">글자 크기</span>
         <div class="seg" data-key="font"><button data-v="1">보통</button><button data-v="2">크게</button><button data-v="3">아주 크게</button></div>
       </div>
+      <div class="group"><span class="label">수드 도우미</span>
+        <div class="seg" data-key="sguide"><button data-v="on">보이기</button><button data-v="off">숨기기</button></div>
+        <p class="note-text">화면 구석의 수드 단추를 누르면 그 화면 도움말을 읽어 드립니다. 숨겨도 연습 중 「어떻게 하나요?」는 그대로 됩니다.</p>
+      </div>
       <p class="note-text">이어폰이나 헤드폰을 끼면 훨씬 잘 들립니다. 기록은 이 기기 안에만 저장됩니다.</p>
     </div>
     <button class="primary" id="sBack">완료</button>
   </section>
 
-  <div class="overlay" id="help" role="dialog" aria-modal="true" aria-labelledby="helpHead">
-    <div class="sheet">
-      <p class="eyebrow">도움말 · 시간은 멈춰 있어요</p>
-      <h2 id="helpHead">두 번째 소리만 보세요</h2>
-      <p class="gbody">두 번째 소리가 첫 소리보다 <b class="upw" style="color:var(--up)">위로 올라가면</b> 「올라갔어요」, <b style="color:var(--down)">아래로 내려가면</b> 「내려갔어요」를 누르세요. 예시를 들어 보세요.</p>
-      <div class="row"><button id="helpUp">도 → 솔 (올라감)</button><button id="helpDown">솔 → 도 (내려감)</button></div>
-      <button class="primary" id="helpClose" style="margin-top:12px">알겠어요, 계속하기</button>
-    </div>
-  </div>
   <canvas id="confetti" aria-hidden="true"></canvas>
-  <footer>연습 도구이며 치료·예방 효과를 약속하지 않습니다 · 수트와후드 SOOD 음감 연습 v1.4.2</footer>
+  <footer>연습 도구이며 치료·예방 효과를 약속하지 않습니다 · 수트와후드 SOOD 음감 연습 v1.5.0</footer>
 </div>
 
+<script src="sood-guide.js"></script>
+<script src="sood-guide-helps.js"></script>
 <script>
 (() => {
   'use strict';
   const KEY = 'sood-pitch-v1';
   const RANGES = { low: [43, 55], mid: [57, 69], high: [67, 79] }; // MIDI 번호 (G2~G3, A3~A4, G4~G5)
-  const DEF = { register: 'mid', length: '0.9', minutes: '2', volume: 0.7, font: '1', theme: '', timbre: 'clear', sfx: 'on' };
+  const DEF = { register: 'mid', length: '0.9', minutes: '2', volume: 0.7, font: '1', theme: '', timbre: 'clear', sfx: 'on', sguide: 'on' };
   const GOAL_MS = 8 * 3600e3;
   const $ = id => document.getElementById(id);
 
@@ -571,7 +567,10 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     }
     return waves[name];
   }
+  // 지금 울리는 소리(문제·예시) — 수드 도우미가 문제 소리와 겹치지 않게 쓴다
+  const live = new Set();
   function tone(freq, start, dur) {
+    if (window.SoodGuide && SoodGuide.speaking) SoodGuide.stop();
     const t = TIMBRES[data.settings.timbre] || TIMBRES.clear;
     const o = ac.createOscillator(), g = ac.createGain(), f = ac.createBiquadFilter ? ac.createBiquadFilter() : null;
     o.setPeriodicWave(wave(data.settings.timbre in TIMBRES ? data.settings.timbre : 'clear'));
@@ -583,7 +582,9 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     if (f) { f.type = 'lowpass'; f.frequency.value = Math.min(7000, freq * t.cut); f.Q.value = 0.5; o.connect(f); f.connect(g); }
     else o.connect(g);
     g.connect(master); o.start(start); o.stop(start + dur + 0.02);
+    live.add(o); o.onended = () => live.delete(o);
   }
+  function hushTones() { live.forEach(o => { try { o.stop(); } catch (e) { } }); live.clear(); }
   function alertNoAudio() {
     const c = document.querySelector('#home .card');
     if (!$('noAudio')) c.insertAdjacentHTML('afterbegin', '<p id="noAudio" class="feedback no" style="visibility:visible">이 브라우저에서는 소리를 낼 수 없습니다. 크롬이나 사파리로 열어 주세요.</p>');
@@ -753,6 +754,7 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
   function melAnswer(i) {
     if (!M.on || M.busy || !M.cur) return;
     setMelAnswerable(false);
+    M.cur.done = true;
     const right = i === M.cur.answer, btns = $('mOpts').querySelectorAll('.mopt');
     M.total++; if (right) M.correct++;
     M.trail.push(right); M.trail = M.trail.slice(-8);
@@ -776,11 +778,11 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     sfx(right);
     const fb = $('mFb');
     const next = () => { if (!M.on) return; if (Date.now() >= M.endAt) finishMel(); else newMel(); };
-    if (right) { fb.className = 'feedback ok'; fb.textContent = '맞았어요' + (M.level > lvAt ? ' · 다음은 ' + MLEVELS[M.level][0] + '음' : ''); setTimeout(next, 1100); }
+    if (right) { fb.className = 'feedback ok'; fb.textContent = '맞았어요' + (M.level > lvAt ? ' · 다음은 ' + MLEVELS[M.level][0] + '음' : ''); setTimeout(() => later(next), 1100); }
     else {
       fb.className = 'feedback no'; fb.textContent = '아쉬워요. 초록색 모양이 정답이에요. 그림을 보며 한 번 더 들어 보세요';
       $('mHint').textContent = '정답 모양을 보며 들어 보세요';
-      setTimeout(() => { if (M.on) playMelody(M.cur.target, $('mDots'), () => setTimeout(next, 700)); }, 900);
+      setTimeout(() => later(() => { if (M.on) playMelody(M.cur.target, $('mDots'), () => setTimeout(() => later(next), 700)); }), 900);
     }
   }
   $('mOpts').addEventListener('click', e => { const b = e.target.closest('.mopt'); if (b) melAnswer(+b.dataset.i); });
@@ -804,7 +806,7 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
       $('mTime').style.transform = 'scaleX(' + Math.min(1, Math.max(0, 1 - left / span)) + ')';
       $('mClock').textContent = fmtClock(left);
     };
-    M.timer = setInterval(tick, 500); tick();
+    M.tick = tick; M.timer = setInterval(tick, 500); tick();
     show('mplay');
     newMel();
   }
@@ -972,17 +974,55 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
   $('gNext').addEventListener('click', () => { if (GSTEPS[G.step].done) gFinish(); else { G.step++; gRender(); } });
   $('gSkip').addEventListener('click', gFinish);
 
-  // ---------- 연습 중 도움말 (시간 멈춤) ----------
-  function openHelp() { if (!S.on) return; S.pausedAt = Date.now(); clearInterval(S.timer); $('help').classList.add('on'); }
-  function closeHelp() {
-    $('help').classList.remove('on');
-    if (S.on && S.pausedAt) { S.endAt += Date.now() - S.pausedAt; S.startAt += Date.now() - S.pausedAt; S.pausedAt = 0; S.timer = setInterval(S.tick, 500); }
+  // ---------- 수드 도우미 (도움말을 말풍선 창으로 보여 주고 읽어 줌) ----------
+  // 창이 열려 있는 동안: 연습 시간 멈춤, 다음 문제 소리는 창을 닫을 때까지 미룸
+  const guideOpen = () => !!document.querySelector('.sg-wrap');
+  let pending = null, hushed = false;
+  function later(fn) { if (guideOpen()) pending = fn; else fn(); }
+  function pauseRun(R) { if (R.on && !R.pausedAt) { R.pausedAt = Date.now(); clearInterval(R.timer); } }
+  function resumeRun(R) {
+    if (R.on && R.pausedAt) { const d = Date.now() - R.pausedAt; R.endAt += d; R.startAt += d; R.pausedAt = 0; clearInterval(R.timer); R.timer = setInterval(R.tick, 500); R.tick(); }
+    else R.pausedAt = 0;
   }
   const helpDemo = up => { try { audio(); } catch (e) { return; } const t = ac.currentTime + 0.05; tone(midiHz(up ? 60 : 67), t, 0.7); tone(midiHz(up ? 67 : 60), t + 1.15, 0.7); };
-  $('helpBtn').addEventListener('click', openHelp);
-  $('helpClose').addEventListener('click', closeHelp);
-  $('helpUp').addEventListener('click', () => helpDemo(true));
-  $('helpDown').addEventListener('click', () => helpDemo(false));
+  // 예시 가락은 tone 으로 직접 낸다 (playMelody 는 문제 진행 순번을 바꿔 연습이 멈출 수 있음)
+  const melDemo = () => { try { audio(); } catch (e) { return; } const t = ac.currentTime + 0.05, b = melBase(); MG.ex.forEach((v, i) => tone(midiHz(b + SCALE[v]), t + i * 0.67, 0.55)); };
+  function onGuideOpen() {
+    pauseRun(S); pauseRun(M);
+    const body = document.querySelector('.sg-wrap .sg-body'), scr = document.querySelector('.screen.on');
+    if (!body || !scr) return;
+    // 예전 「어떻게 하나요?」의 예시 소리 단추를 도우미 창 안에 그대로 둔다
+    if (scr.id === 'play') {
+      body.insertAdjacentHTML('beforeend', '<div class="sg-demo"><button type="button" data-d="up">도 → 솔 (올라감)</button><button type="button" data-d="down">솔 → 도 (내려감)</button></div>');
+      body.querySelector('[data-d="up"]').addEventListener('click', () => helpDemo(true));
+      body.querySelector('[data-d="down"]').addEventListener('click', () => helpDemo(false));
+    } else if (scr.id === 'mplay') {
+      body.insertAdjacentHTML('beforeend', '<div class="sg-demo"><button type="button" data-d="mel">예시 듣기 · 도-미-솔-미</button></div>');
+      body.querySelector('[data-d="mel"]').addEventListener('click', melDemo);
+    }
+  }
+  function onGuideClose() {
+    hushTones();
+    resumeRun(S); resumeRun(M);
+    // 도우미를 부르느라 문제 소리를 끊었으면, 아직 답하지 않은 문제를 다시 들려 준다
+    if (hushed) {
+      hushed = false;
+      if (S.on && S.cur && !S.cur.done) playPair();
+      else if (M.on && M.cur && !M.cur.done) { setMelAnswerable(false); playMelody(M.cur.target, $('mDots'), () => setMelAnswerable(true)); }
+    }
+    const fn = pending; pending = null;
+    if (fn) fn();
+  }
+  let wasOpen = false;
+  new MutationObserver(() => {
+    const now = guideOpen();
+    if (now !== wasOpen) { wasOpen = now; if (now) onGuideOpen(); else onGuideClose(); }
+  }).observe(document.body, { childList: true });
+  // 도우미를 부르는 순간 울리던 문제 소리를 멈춰야 바로 읽기 시작한다 (사용자 동작 안에서 열어야 아이폰도 소리 남)
+  document.addEventListener('click', e => {
+    if (e.target.closest && e.target.closest('.sg-fab, .sg-peek, #helpBtn') && live.size) { hushTones(); hushed = true; }
+  }, true);
+  $('helpBtn').addEventListener('click', () => { if (window.SoodGuide) SoodGuide.open('play'); });
 
   // ---------- 점수·효과음 ----------
   function points(cents) { return Math.round(10 + 10 * Math.log2(Math.max(1, 100 / cents))); }
@@ -1004,6 +1044,7 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
   function answer(saysUp) {
     if (!S.on || S.busy || !S.cur) return;
     setAnswerable(false);
+    S.cur.done = true;
     const right = saysUp === S.cur.up;
     S.total++; if (right) S.correct++;
     pushTrail(right);
@@ -1035,12 +1076,12 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     const next = () => { if (!S.on) return; if (Date.now() >= S.endAt) finish(); else newTrial(); };
     if (right) {
       fb.className = 'feedback ok'; fb.textContent = '맞았어요';
-      setTimeout(next, 900);
+      setTimeout(() => later(next), 900);
     } else {
       // 틀리면 정답 방향을 보여 준 채로 두 음을 한 번 더 들려준다
       fb.className = 'feedback no'; fb.textContent = '아쉬워요. 두 번째 소리가 ' + (S.cur.up ? '올라갔어요' : '내려갔어요') + '. 한 번 더 들어 보세요';
       $('pHint').textContent = '정답 방향을 보며 들어 보세요';
-      setTimeout(() => { if (S.on) playPair(() => setTimeout(next, 500)); }, 900);
+      setTimeout(() => later(() => { if (S.on) playPair(() => setTimeout(() => later(next), 500)); }), 900);
     }
   }
 
@@ -1298,6 +1339,7 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     const b = e.target.closest('button'); if (!b) return;
     data.settings[seg.dataset.key] = b.dataset.v; save(); applyLook(); renderSettings();
     if (seg.dataset.key === 'timbre' || seg.dataset.key === 'register') sample();
+    if (seg.dataset.key === 'sguide' && window.SoodGuide) SoodGuide.setVisible(data.settings.sguide !== 'off');
   }));
   $('vol').addEventListener('input', e => { data.settings.volume = parseFloat(e.target.value); if (master) master.gain.value = data.settings.volume; save(); });
   $('testSound').addEventListener('click', sample);
@@ -1340,14 +1382,25 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
   $('sBack').addEventListener('click', () => show('home'));
   $('wBack').addEventListener('click', () => show('home'));
   document.addEventListener('keydown', e => {
-    if (M.on && !M.busy && /^[1-4]$/.test(e.key)) { melAnswer(+e.key - 1); return; }
-    if (!S.on || $('help').classList.contains('on')) return;
+    if (M.on && !M.busy && !guideOpen() && /^[1-4]$/.test(e.key)) { melAnswer(+e.key - 1); return; }
+    if (!S.on || guideOpen()) return;
     if (e.key === 'ArrowUp') { e.preventDefault(); answer(true); }
     else if (e.key === 'ArrowDown') { e.preventDefault(); answer(false); }
     else if ((e.key === 'r' || e.key === ' ') && !S.busy) { e.preventDefault(); playPair(); }
   });
 
   applyLook(); renderHome(); renderGame();
+
+  // 수드 도우미 시작: ② 헤드폰 쓴 수드, 오른쪽 아래 (왼쪽엔 「다시 듣기」가 있어 겹치지 않게)
+  // 숨기기를 골라도 저절로 나오는 말풍선이 뜨지 않도록 그때는 바쁜 것으로 알린다 (창을 직접 열면 읽음)
+  const sgBusy = () => live.size > 0 || (data.settings.sguide === 'off' && !guideOpen());
+  window.__sgBusy = sgBusy; // 검사용
+  if (window.SoodGuide && window.SOOD_HELPS) {
+    SoodGuide.init({ char: 'listener', helps: window.SOOD_HELPS, voiceDir: 'sood-voice/',
+      context: () => { const o = document.querySelector('.screen.on'); return o ? o.id : 'home'; },
+      isBusy: sgBusy, idleSec: 30, corner: 'right', bottom: 20 });
+    SoodGuide.setVisible(data.settings.sguide !== 'off');
+  }
 })();
 </script>
 </body>
