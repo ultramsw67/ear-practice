@@ -170,7 +170,7 @@ input[type="range"] { width: 100%; height: 40px; accent-color: var(--accent); }
 .gnav .back { flex: 0 0 34%; }
 .gnav .primary { flex: 1; }
 .skip { display: block; margin: 8px auto 0; background: none; border: none; color: var(--sub); text-decoration: underline; min-height: 44px; font-size: 0.88em; }
-.ans small { font-size: 0.7em; font-weight: 500; opacity: 0.85; }
+.ans small { font-size: 0.7em; font-weight: 600; }
 .note small { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 0.62em; font-weight: 600; color: var(--sub); }
 .helpbtn { min-height: 48px; padding: 8px 14px; font-size: 0.88em; color: var(--sub); }
 .overlay { position: fixed; inset: 0; background: rgba(10,14,20,.55); display: none; align-items: flex-end; justify-content: center; z-index: 40; padding: 16px; }
@@ -179,12 +179,12 @@ input[type="range"] { width: 100%; height: 40px; accent-color: var(--accent); }
 .sheet .row { margin-top: 12px; }
 /* 게임 요소 */
 .lvl { display: flex; align-items: center; gap: 14px; }
-.lvl .medal { flex: none; width: 52px; height: 52px; border-radius: 16px; background: linear-gradient(135deg, var(--accent), #7b5cff); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 1.15em; }
+.lvl .medal { flex: none; width: 52px; height: 52px; border-radius: 16px; background: linear-gradient(135deg, var(--accent), #5b3fd9); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 1.15em; }
 .lvl .info { flex: 1; min-width: 0; }
 .lvl .info b { display: block; font-size: 1.02em; }
 .lvl .info span { font-size: 0.8em; color: var(--sub); }
 .xpbar { height: 8px; border-radius: 8px; background: var(--surface-2); overflow: hidden; margin-top: 6px; }
-.xpbar i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, var(--accent), #7b5cff); border-radius: 8px; transform-origin: left; transform: scaleX(0); transition: transform .8s cubic-bezier(.2,.8,.2,1); }
+.xpbar i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, var(--accent), #5b3fd9); border-radius: 8px; transform-origin: left; transform: scaleX(0); transition: transform .8s cubic-bezier(.2,.8,.2,1); }
 .mission { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; background: var(--accent-soft); margin-bottom: 12px; }
 .mission .ico { flex: none; width: 40px; height: 40px; border-radius: 12px; background: var(--surface); display: grid; place-items: center; color: var(--accent); }
 .mission .ico svg { width: 22px; height: 22px; }
@@ -812,10 +812,10 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     { id: 'streak3', icon: '3일', color: '#c2410c', title: '3일 연속', desc: '3일 이어서 연습', ok: c => c.streak >= 3 },
     { id: 'streak7', icon: '7일', color: '#9a3412', title: '일주일 연속', desc: '7일 이어서 연습', ok: c => c.streak >= 7 },
     { id: 'streak30', icon: '30', color: '#7c2d12', title: '한 달 연속', desc: '30일 이어서 연습', ok: c => c.streak >= 30 },
-    { id: 'half', icon: '½', color: '#0d9488', title: '반음 쪼개기', desc: '반음의 1/2 알아듣기', ok: c => c.th <= 50 },
-    { id: 'quarter', icon: '¼', color: '#0f766e', title: '4분의 1', desc: '반음의 1/4 알아듣기', ok: c => c.th <= 25 },
-    { id: 'tenth', icon: '1/10', color: '#115e59', title: '튜너 귀', desc: '반음의 1/10 알아듣기', ok: c => c.th <= 10 },
-    { id: 'twentieth', icon: '1/20', color: '#134e4a', title: '황금 귀', desc: '반음의 1/20 알아듣기', ok: c => c.th <= 5 },
+    { id: 'half', icon: '½', color: '#0f766e', title: '반음 쪼개기', desc: '반음의 1/2 알아듣기', ok: c => c.th <= 50 },
+    { id: 'quarter', icon: '¼', color: '#115e59', title: '4분의 1', desc: '반음의 1/4 알아듣기', ok: c => c.th <= 25 },
+    { id: 'tenth', icon: '1/10', color: '#134e4a', title: '튜너 귀', desc: '반음의 1/10 알아듣기', ok: c => c.th <= 10 },
+    { id: 'twentieth', icon: '1/20', color: '#0b3b38', title: '황금 귀', desc: '반음의 1/20 알아듣기', ok: c => c.th <= 5 },
     { id: 'combo10', icon: '10', color: '#be185d', title: '콤보 10', desc: '한 판에 10번 연속 맞히기', ok: c => c.maxCombo >= 10 },
     { id: 'combo20', icon: '20', color: '#9d174d', title: '콤보 20', desc: '한 판에 20번 연속 맞히기', ok: c => c.maxCombo >= 20 },
     { id: 'hour1', icon: '1h', color: '#7c3aed', title: '1시간', desc: '누적 연습 1시간', ok: c => c.total >= 3600e3 },
@@ -846,12 +846,12 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     }
     if (S.score > g.bestScore) { if (g.bestScore > 0) wins.push({ kind: 'best', big: true, icon: '최고', color: '#be185d', title: '최고 점수 경신', desc: g.bestScore + '점 → ' + S.score + '점' }); g.bestScore = S.score; }
     const bestTh = Math.min(...data.sessions.slice(0, -1).map(x => x.threshold), 999);
-    if (data.sessions.length > 1 && th < bestTh) wins.push({ big: true, icon: frac(th), color: '#0d9488', title: '가장 섬세하게 들은 날', desc: '지금까지 중 가장 작은 차이를 알아들었어요' });
+    if (data.sessions.length > 1 && th < bestTh) wins.push({ big: true, icon: frac(th), color: '#0f766e', title: '가장 섬세하게 들은 날', desc: '지금까지 중 가장 작은 차이를 알아들었어요' });
     BADGES.forEach(b => { if (!g.badges[b.id] && b.ok(ctx)) { g.badges[b.id] = Date.now(); wins.push({ big: true, icon: b.icon, color: b.color, title: '업적 · ' + b.title, desc: b.desc }); } });
     g.xp += gain;
     const after = levelOf(g.xp);
     wins.unshift({ icon: '+' + gain, color: '#3450d1', title: '경험치 ' + gain + ' XP', desc: rankOf(after) + ' · Lv.' + after });
-    if (after > before) wins.splice(1, 0, { big: true, icon: 'Lv' + after, color: '#7b5cff', title: '등급 올림! Lv.' + after, desc: rankOf(after) !== rankOf(before) ? '새 등급: ' + rankOf(after) : rankOf(after) });
+    if (after > before) wins.splice(1, 0, { big: true, icon: 'Lv' + after, color: '#5b3fd9', title: '등급 올림! Lv.' + after, desc: rankOf(after) !== rankOf(before) ? '새 등급: ' + rankOf(after) : rankOf(after) });
     return wins;
   }
 
@@ -878,7 +878,7 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     const cv = $('confetti'), cx = cv.getContext('2d');
     if (!cx || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     cv.width = innerWidth; cv.height = innerHeight;
-    const cols = ['#3450d1', '#7b5cff', '#f97316', '#0d9488', '#db2777', '#facc15'];
+    const cols = ['#3450d1', '#5b3fd9', '#f97316', '#0d9488', '#db2777', '#facc15'];
     const ps = Array.from({ length: 120 }, () => ({ x: innerWidth / 2 + (Math.random() - 0.5) * 80, y: innerHeight * 0.35, vx: (Math.random() - 0.5) * 12, vy: -Math.random() * 12 - 4, r: Math.random() * 6 + 4, c: cols[Math.floor(Math.random() * cols.length)], a: Math.random() * 6 }));
     let f = 0;
     (function step() {
