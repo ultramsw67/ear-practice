@@ -92,7 +92,8 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .steps li::before { counter-increment: s; content: counter(s); flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 0.8em; display: grid; place-items: center; }
 /* 연습 화면 */
 .playtop { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.clock { font-weight: 700; font-size: 1.05em; }
+.clock { font-weight: 700; font-size: 1.05em; white-space: nowrap; }
+@media (max-width: 400px) { :root[data-font="3"] .clock small, :root[data-font="2"] .clock small { display: none; } }
 .clock small { color: var(--sub); font-weight: 500; font-size: 0.78em; margin-left: 8px; }
 .close { min-height: 40px; padding: 6px 14px; font-size: 0.85em; color: var(--sub); }
 .timebar { height: 4px; border-radius: 4px; background: var(--line); overflow: hidden; margin-bottom: 14px; }
@@ -177,6 +178,30 @@ input[type="range"] { width: 100%; height: 40px; accent-color: var(--accent); }
 .overlay.on { display: flex; }
 .sheet { width: 100%; max-width: 520px; background: var(--surface); border-radius: 22px; padding: 22px 20px; animation: fade .25s ease; }
 .sheet .row { margin-top: 12px; }
+/* 선율 기억 */
+.mdots { position: absolute; left: 24px; right: 24px; top: 50%; transform: translateY(-50%); display: flex; justify-content: space-between; align-items: center; }
+.mdots i { width: 22px; height: 22px; border-radius: 50%; background: var(--surface-2); border: 2px solid var(--line); transition: background .1s, transform .1s; }
+.mdots i.on { background: var(--accent); border-color: var(--accent); transform: scale(1.25); }
+.mdots i.done { background: var(--accent-soft); border-color: var(--accent); }
+.mopts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mopt { padding: 10px; min-height: 96px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border-width: 2px; }
+.mopt svg { width: 100%; height: 64px; }
+.mopt svg polyline { fill: none; stroke: var(--ink); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.mopt svg circle { fill: var(--surface); stroke: var(--ink); stroke-width: 2.5; }
+.mopt svg circle.first { fill: var(--ink); }
+.mopt span { font-size: 0.74em; color: var(--sub); font-weight: 600; }
+.mopt .arrows { font-size: 0.95em; color: var(--ink); letter-spacing: 0.08em; font-weight: 700; }
+.mopt.ok { border-color: var(--ok); background: var(--ok-soft); }
+.mopt.ok svg polyline, .mopt.ok svg circle { stroke: var(--ok); }
+.mopt.ok svg circle.first { fill: var(--ok); }
+.mopt.no { border-color: var(--no); background: var(--no-soft); }
+.mopt.dim { opacity: 0.4; }
+.train-head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.train-head .tico { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); flex: none; }
+.train-head .tico svg { width: 20px; height: 20px; }
+.train-head b { font-size: 1.02em; }
+.first-try { font-size: 0.6em; color: var(--accent); letter-spacing: -0.02em; }
+.train-head .new { font-size: 0.68em; font-weight: 800; color: #fff; background: #be185d; border-radius: 999px; padding: 3px 9px; margin-left: auto; }
 /* 게임 요소 */
 .lvl { display: flex; align-items: center; gap: 14px; }
 .lvl .medal { flex: none; width: 52px; height: 52px; border-radius: 16px; background: linear-gradient(135deg, var(--accent), #5b3fd9); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 1.15em; }
@@ -193,8 +218,8 @@ input[type="range"] { width: 100%; height: 40px; accent-color: var(--accent); }
 .mission.done .ico { background: var(--ok); color: #fff; }
 .flame { color: #c2410c; }
 .scorebox { margin-left: auto; margin-right: 10px; display: flex; align-items: center; gap: 8px; }
-.scorebox b { font-size: 1.15em; font-weight: 800; letter-spacing: -0.02em; }
-.combo { display: inline-block; font-size: 0.72em; font-weight: 800; color: #fff; background: #c2410c; border-radius: 999px; padding: 4px 10px; transform: scale(0); transition: transform .2s cubic-bezier(.3,1.6,.5,1); }
+.scorebox b { white-space: nowrap; font-size: 1.15em; font-weight: 800; letter-spacing: -0.02em; }
+.combo { display: inline-block; white-space: nowrap; font-size: 0.72em; font-weight: 800; color: #fff; background: #c2410c; border-radius: 999px; padding: 4px 10px; transform: scale(0); transition: transform .2s cubic-bezier(.3,1.6,.5,1); }
 .combo.on { transform: scale(1); }
 .pop { position: absolute; left: 86%; top: 50%; transform: translate(-50%, -50%); font-weight: 800; font-size: 1.3em; color: var(--ok); pointer-events: none; animation: popup .9s ease-out forwards; }
 @keyframes popup { 0% { opacity: 0; transform: translate(-50%, -30%) scale(.8); } 20% { opacity: 1; transform: translate(-50%, -80%) scale(1.1); } 100% { opacity: 0; transform: translate(-50%, -170%) scale(1); } }
@@ -244,12 +269,25 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
       <div><span>오늘의 도전 · 성공하면 +100 XP</span><b id="gMissionText">-</b></div>
     </div>
     <div class="card">
-      <p class="eyebrow">내 음감</p>
+      <div class="train-head"><div class="tico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16l6-8 6 8"/></svg></div><b>훈련 1 · 음정 듣기</b></div>
       <div class="hero-level">
         <div class="big-num" id="hLevel">—</div>
         <svg class="spark" id="hSpark" viewBox="0 0 120 44" aria-hidden="true"></svg>
       </div>
-      <p class="sub" id="hLevelNote">첫 연습을 하면 내가 알아듣는 가장 작은 음 차이가 여기에 나옵니다.</p>
+      <p class="sub" id="hLevelNote">두 소리가 올라갔는지 내려갔는지 가려 듣습니다. 첫 연습을 하면 내가 알아듣는 가장 작은 차이가 여기에 나옵니다.</p>
+      <button class="primary" id="startBtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>음정 듣기 시작 · <span id="startMin">2</span>분</button>
+    </div>
+    <div class="card">
+      <div class="train-head"><div class="tico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16l4-5 4 3 4-7 6 6"/></svg></div><b>훈련 2 · 선율 기억</b><span class="new" id="mNew">새 훈련</span></div>
+      <div class="hero-level">
+        <div class="big-num" id="mLevel">—</div>
+        <svg class="spark" id="mSpark" viewBox="0 0 120 44" aria-hidden="true"></svg>
+      </div>
+      <p class="sub" id="mLevelNote">짧은 가락을 듣고, 그 가락이 오르내린 모양을 그림에서 고릅니다. 맞힐수록 가락이 길어집니다.</p>
+      <button class="primary" id="startMelBtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>선율 기억 시작 · <span id="startMin2">2</span>분</button>
+    </div>
+    <div class="card">
+      <p class="eyebrow">내 연습</p>
       <div class="chips">
         <div class="chip"><span>연속</span><b id="hStreak" class="flame">0일</b></div>
         <div class="chip"><span>이번 주</span><b id="hWeek">0번</b></div>
@@ -259,18 +297,9 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
         <div class="meta"><span>누적 연습 <b id="hTotal">0분</b></span><span>목표 8시간</span></div>
         <div class="bar"><i id="hGoal" style="width:0"></i></div>
       </div>
-      <button class="primary" id="startBtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>연습 시작 · <span id="startMin">2</span>분</button>
+      <p class="sub" style="margin:0">두 훈련을 번갈아 하면 귀에 늘 새로운 자극이 됩니다.</p>
     </div>
-    <div class="card">
-      <p class="eyebrow">연습 방법</p>
-      <ol class="steps">
-        <li>소리 두 개를 차례로 들려 드립니다.</li>
-        <li>두 번째 소리가 <b>올라갔는지, 내려갔는지</b> 고릅니다. '도→솔'처럼 올라가면 올라갔어요, '솔→도'처럼 내려가면 내려갔어요.</li>
-        <li>맞히면 차이가 작아지고, 틀리면 정답을 보여 주며 한 번 더 들려 드립니다.</li>
-      </ol>
-      <button class="ghost" id="toGuide" style="margin-top:8px">처음 안내 다시 보기</button>
-    </div>
-    <button class="ghost" id="toWhy">이 연습이 왜 도움이 되나요?</button>
+    <div class="row"><button class="ghost" id="toGuide">사용법 다시 보기</button><button class="ghost" id="toWhy">왜 도움이 되나요?</button></div>
   </section>
 
   <!-- 연습 화면 -->
@@ -302,6 +331,42 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     <div class="feedback" id="pFb" role="status" aria-live="polite"></div>
   </section>
 
+  <!-- 선율 기억 안내 (처음 한 번) -->
+  <section class="screen" id="mguide">
+    <div class="card">
+      <p class="eyebrow">선율 기억 · 처음 안내</p>
+      <h2>들은 가락의 모양을 고르세요</h2>
+      <p class="gbody">짧은 가락을 들려 드립니다. 소리가 <b class="upw">올라가면 선이 위로</b>, <b class="downw">내려가면 선이 아래로</b> 그려진 그림을 고르면 됩니다. 까만 점이 첫 소리이고, 그림 아래 화살표(↗ 올라감, ↘ 내려감)도 같은 뜻입니다.</p>
+      <p class="gbody" id="mgTip">아래 예시를 들어 보세요. '도-미-솔-미'는 올라갔다가 한 번 내려옵니다.</p>
+      <div class="mopts" id="mgOpts"></div>
+      <button class="gplay" id="mgPlay" style="margin-top:12px"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>예시 들어 보기</button>
+    </div>
+    <button class="primary" id="mgGo" disabled>알겠어요, 시작하기</button>
+    <button class="skip" id="mgSkip">안내 건너뛰기</button>
+  </section>
+
+  <!-- 선율 기억 연습 -->
+  <section class="screen" id="mplay">
+    <div class="playtop">
+      <div class="clock"><span id="mClock">2:00</span><small id="mCount">1번째</small></div>
+      <div class="scorebox"><span class="combo" id="mCombo">콤보 0</span><b><span id="mScore">0</span>점</b></div>
+      <button class="close" id="mQuitBtn">마치기</button>
+    </div>
+    <div class="timebar" aria-hidden="true"><i id="mTime"></i></div>
+    <div class="stage" id="mStage" style="height:150px">
+      <span class="tag" id="mTag">3음 · 보기 2개</span>
+      <div class="mdots" id="mDots"></div>
+      <div class="hint" id="mHint"></div>
+    </div>
+    <div class="q" id="mQ">잘 들어 보세요</div>
+    <div class="mopts" id="mOpts"></div>
+    <div class="subrow">
+      <button class="replay" id="mReplay" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg><span id="mReplayText">한 번 더 듣기</span></button>
+      <div class="trail" id="mTrail" aria-hidden="true"></div>
+    </div>
+    <div class="feedback" id="mFb" role="status" aria-live="polite"></div>
+  </section>
+
   <!-- 처음 안내 -->
   <section class="screen" id="guide">
     <div class="gdots" id="gDots" aria-hidden="true"></div>
@@ -325,7 +390,7 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
   <section class="screen" id="result">
     <div class="card">
       <div class="result-head">
-        <p class="eyebrow">오늘 알아들은 가장 작은 차이</p>
+        <p class="eyebrow" id="rHeadLabel">오늘 알아들은 가장 작은 차이</p>
         <div class="big-num" id="rLevel">—</div>
         <p class="sub" id="rCents"></p>
       </div>
@@ -348,6 +413,12 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
       <h2>반음을 몇 조각까지 알아들었나</h2>
       <p class="sub">위로 갈수록 더 작은 차이를 알아들은 것입니다.</p>
       <div id="chartBox"></div>
+    </div>
+    <div class="card">
+      <p class="eyebrow">기록</p>
+      <h2>가락을 몇 음까지 기억했나</h2>
+      <p class="sub">위로 갈수록 더 긴 가락을 기억한 것입니다.</p>
+      <div id="mChartBox"></div>
     </div>
     <div class="card" id="listBox"></div>
     <button class="primary" id="hBack">처음으로</button>
@@ -431,7 +502,7 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     </div>
   </div>
   <canvas id="confetti" aria-hidden="true"></canvas>
-  <footer>연습 도구이며 치료·예방 효과를 약속하지 않습니다 · SOOD 음감 연습 v1.3.0</footer>
+  <footer>연습 도구이며 치료·예방 효과를 약속하지 않습니다 · SOOD 음감 연습 v1.4.1</footer>
 </div>
 
 <script>
@@ -515,8 +586,10 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     startAt: 0, endAt: 0, cur: null, busy: false, timer: null, playToken: 0, trail: [] };
   window.__pitch = S; window.__data = data; // 검사용
 
+  const pitchSessions = () => data.sessions.filter(x => x.mode !== 'melody');
+  const melSessions = () => data.sessions.filter(x => x.mode === 'melody');
   function startCents() {
-    const last = data.sessions[data.sessions.length - 1];
+    const ps = pitchSessions(), last = ps[ps.length - 1];
     if (!last) return 100;
     return Math.min(100, Math.max(6, last.threshold * 1.8));
   }
@@ -574,6 +647,224 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     S.trail.push(ok); S.trail = S.trail.slice(-12);
     $('pTrail').innerHTML = S.trail.map(v => '<i class="' + (v ? 'ok' : 'no') + '"></i>').join('');
   }
+
+  // ---------- 선율 기억 ----------
+  // 짧은 가락을 듣고 오르내린 모양(그림)을 고른다. 2번 맞히면 한 단계 위(가락이 길어지거나 보기가 늘어남), 1번 틀리면 한 단계 아래
+  // 5단계부터 틀린 보기는 '한 군데만 다른' 모양이라 더 꼼꼼히 기억해야 한다
+  const MLEVELS = [null, [3, 2], [4, 2], [4, 3], [5, 3], [5, 4], [6, 4], [7, 4], [8, 4], [9, 4]]; // [음 수, 보기 수]
+  const SCALE = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16]; // 장음계 자리 (도~미')
+  const M = { on: false, level: 1, streak: 0, best: 0, total: 0, correct: 0, score: 0, combo: 0, maxCombo: 0, cur: null, busy: true, replays: 1, token: 0, trail: [], startAt: 0, endAt: 0, timer: null };
+  window.__mel = M; // 검사용
+
+  const sig = a => a.slice(1).map((v, i) => Math.sign(v - a[i])).join('');
+  function randMelody(n) {
+    for (let t = 0; t < 200; t++) {
+      const a = [1 + Math.floor(Math.random() * 5)];
+      let ok = true;
+      for (let i = 1; i < n; i++) {
+        const st = [-2, -1, 1, 2, -1, 1, 3, -3][Math.floor(Math.random() * 8)], v = a[i - 1] + st;
+        if (v < 0 || v >= SCALE.length) { ok = false; break; }
+        a.push(v);
+      }
+      if (ok) return a;
+    }
+    return Array.from({ length: n }, (_, i) => i % SCALE.length);
+  }
+  function oneChange(a) {
+    for (let t = 0; t < 100; t++) {
+      const j = 1 + Math.floor(Math.random() * (a.length - 1)), b = a.slice();
+      const dir = Math.sign(a[j] - a[j - 1]), nv = a[j - 1] - dir * (1 + Math.floor(Math.random() * 2));
+      if (nv < 0 || nv >= SCALE.length || nv === a[j - 1]) continue;
+      b[j] = nv;
+      if (j + 1 < b.length && b[j + 1] === b[j]) continue;
+      return b;
+    }
+    return randMelody(a.length);
+  }
+  function makeQuestion() {
+    const [n, k] = MLEVELS[M.level], subtle = M.level >= 5;
+    if (M.level === 1) {
+      const s0 = 1 + Math.floor(Math.random() * 3), upA = [s0, s0 + 2, s0 + 4], downA = [s0 + 4, s0 + 2, s0];
+      const up = Math.random() < 0.5, opts = Math.random() < 0.5 ? [upA, downA] : [downA, upA];
+      const target = up ? upA : downA;
+      return { target, opts, answer: opts.indexOf(target) };
+    }
+    const target = randMelody(n);
+    const opts = [target], sigs = new Set([sig(target)]);
+    for (let t = 0; opts.length < k && t < 300; t++) {
+      const d = subtle ? oneChange(target) : randMelody(n);
+      if (!sigs.has(sig(d))) { sigs.add(sig(d)); opts.push(d); }
+    }
+    for (let i = opts.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [opts[i], opts[j]] = [opts[j], opts[i]]; }
+    return { target, opts, answer: opts.indexOf(target) };
+  }
+  const arrows = a => a.slice(1).map((v, i) => v > a[i] ? '↗' : '↘').join(' ');
+  function contourSvg(a) {
+    const W = 120, H = 60, lo = Math.min(...a), hi = Math.max(...a);
+    const pts = a.map((v, i) => [10 + (W - 20) * i / (a.length - 1), H - 10 - (H - 20) * (hi === lo ? 0.5 : (v - lo) / (hi - lo))]);
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true"><polyline points="' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ') + '"/>' +
+      pts.map((p, i) => '<circle class="' + (i ? '' : 'first') + '" cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="4.5"/>').join('') + '</svg>';
+  }
+  function melBase() { const [lo] = RANGES[data.settings.register] || RANGES.mid; return lo + 3; }
+  function playMelody(a, dotsEl, after) {
+    try { audio(); } catch (e) { return; }
+    const dur = 0.55, gap = 0.12, t0 = ac.currentTime + 0.15, tok = ++M.token, base = melBase();
+    const dots = dotsEl ? dotsEl.querySelectorAll('i') : [];
+    dots.forEach(d => d.className = '');
+    a.forEach((v, i) => {
+      const at = i * (dur + gap);
+      tone(midiHz(base + SCALE[v]), t0 + at, dur);
+      setTimeout(() => { if (tok === M.token && dots[i]) dots[i].className = 'on'; }, (0.15 + at) * 1000);
+      setTimeout(() => { if (tok === M.token && dots[i]) dots[i].className = 'done'; }, (0.15 + at + dur) * 1000);
+    });
+    setTimeout(() => { if (tok === M.token && after) after(); }, (0.15 + a.length * (dur + gap)) * 1000);
+  }
+  function setMelAnswerable(on) {
+    M.busy = !on;
+    $('mOpts').querySelectorAll('.mopt').forEach(b => b.disabled = !on);
+    $('mReplay').disabled = !on;
+  }
+  function newMel() {
+    M.cur = makeQuestion();
+    const [n, k] = MLEVELS[M.level];
+    $('mCount').textContent = (M.total + 1) + '번째';
+    $('mTag').textContent = n + '음 · 보기 ' + k + '개' + (M.level >= 5 ? ' · 한 군데만 달라요' : '');
+    $('mDots').innerHTML = '<i></i>'.repeat(n);
+    $('mOpts').innerHTML = M.cur.opts.map((o, i) => '<button class="mopt" data-i="' + i + '" disabled>' + contourSvg(o) + '<span class="arrows">' + arrows(o) + '</span><span>' + (i + 1) + '번</span></button>').join('');
+    $('mQ').textContent = '잘 들어 보세요';
+    $('mHint').textContent = '';
+    $('mFb').className = 'feedback'; $('mFb').textContent = '';
+    M.replays = 1;
+    setMelAnswerable(false);
+    playMelody(M.cur.target, $('mDots'), () => { $('mQ').textContent = '들은 가락은 어느 모양이었나요?'; setMelAnswerable(true); });
+  }
+  function melAnswer(i) {
+    if (!M.on || M.busy || !M.cur) return;
+    setMelAnswerable(false);
+    const right = i === M.cur.answer, btns = $('mOpts').querySelectorAll('.mopt');
+    M.total++; if (right) M.correct++;
+    M.trail.push(right); M.trail = M.trail.slice(-12);
+    $('mTrail').innerHTML = M.trail.map(v => '<i class="' + (v ? 'ok' : 'no') + '"></i>').join('');
+    btns.forEach((b, j) => b.classList.add(j === M.cur.answer ? 'ok' : j === i ? 'no' : 'dim'));
+    const lvAt = M.level;
+    if (right) {
+      M.combo++; M.maxCombo = Math.max(M.maxCombo, M.combo);
+      M.best = Math.max(M.best, lvAt);
+      const n = Math.round((10 + 6 * lvAt) * mult(M.combo) * (M.replays < 1 ? 0.7 : 1));
+      M.score += n;
+      const el = document.createElement('div'); el.className = 'pop'; el.style.left = '50%'; el.textContent = '+' + n; $('mStage').appendChild(el); setTimeout(() => el.remove(), 950);
+      M.streak++; if (M.streak >= 2) { M.streak = 0; M.level = Math.min(9, M.level + 1); }
+    } else {
+      M.combo = 0; M.streak = 0; M.level = Math.max(1, M.level - 1);
+      const st = $('mStage'); st.classList.remove('shake'); void st.offsetWidth; st.classList.add('shake');
+    }
+    $('mScore').textContent = M.score;
+    const cb = $('mCombo');
+    if (M.combo >= 2) { cb.textContent = '콤보 ' + M.combo + (mult(M.combo) > 1 ? ' ×' + mult(M.combo) : ''); cb.classList.add('on'); } else cb.classList.remove('on');
+    sfx(right);
+    const fb = $('mFb');
+    const next = () => { if (!M.on) return; if (Date.now() >= M.endAt) finishMel(); else newMel(); };
+    if (right) { fb.className = 'feedback ok'; fb.textContent = '맞았어요' + (M.level > lvAt ? ' · 다음은 ' + MLEVELS[M.level][0] + '음' : ''); setTimeout(next, 1100); }
+    else {
+      fb.className = 'feedback no'; fb.textContent = '아쉬워요. 초록색 모양이 정답이에요. 그림을 보며 한 번 더 들어 보세요';
+      $('mHint').textContent = '정답 모양을 보며 들어 보세요';
+      setTimeout(() => { if (M.on) playMelody(M.cur.target, $('mDots'), () => setTimeout(next, 700)); }, 900);
+    }
+  }
+  $('mOpts').addEventListener('click', e => { const b = e.target.closest('.mopt'); if (b) melAnswer(+b.dataset.i); });
+  $('mReplay').addEventListener('click', () => {
+    if (M.busy) return;
+    M.replays = 0;
+    setMelAnswerable(false);
+    playMelody(M.cur.target, $('mDots'), () => setMelAnswerable(true));
+  });
+  function startMel() {
+    try { audio(); } catch (e) { show('home'); return; }
+    if (data.settings.mguide !== 'done') { openMelGuide(); return; }
+    const last = melSessions().slice(-1)[0];
+    Object.assign(M, { on: true, level: last ? Math.max(1, last.level - 1) : 1, streak: 0, best: 0, total: 0, correct: 0, score: 0, combo: 0, maxCombo: 0, cur: null, trail: [] });
+    $('mScore').textContent = '0'; $('mCombo').classList.remove('on'); $('mTrail').innerHTML = '';
+    const ms = parseFloat(data.settings.minutes) * 60000;
+    M.startAt = Date.now(); M.endAt = M.startAt + ms;
+    clearInterval(M.timer);
+    const tick = () => {
+      const left = M.endAt - Date.now(), span = M.endAt - M.startAt;
+      $('mTime').style.transform = 'scaleX(' + Math.min(1, Math.max(0, 1 - left / span)) + ')';
+      $('mClock').textContent = fmtClock(left);
+    };
+    M.timer = setInterval(tick, 500); tick();
+    show('mplay');
+    newMel();
+  }
+  function stopMel() { M.on = false; M.token++; clearInterval(M.timer); }
+  function finishMel() {
+    stopMel();
+    const ms = melSessions(), prev = ms[ms.length - 1];
+    const enough = M.total >= 4 && M.best > 0;
+    const notes = M.best ? MLEVELS[M.best][0] : 0;
+    if (enough) data.sessions.push({ mode: 'melody', ts: Date.now(), level: M.best, notes, correct: M.correct, total: M.total, ms: Math.min(Date.now() - M.startAt, 30 * 60000), score: M.score, maxCombo: M.maxCombo });
+    const wins = enough ? reward({ mode: 'melody', prev, notes }) : [];
+    save(); lastMode = 'melody';
+    $('rPoints').textContent = M.score + (wins.some(w => w.kind === 'best') ? ' · 최고 기록' : '');
+    $('rCombo').textContent = M.maxCombo;
+    $('rWins').innerHTML = wins.map(w => '<div class="win"><div class="b" style="background:' + w.color + '">' + w.icon + '</div><div><b>' + w.title + '</b><span>' + w.desc + '</span></div></div>').join('');
+    if (wins.some(w => w.big)) setTimeout(confetti, 250);
+    $('rHeadLabel').textContent = '오늘 기억한 가장 긴 가락';
+    $('rLevel').textContent = enough ? notes + '음' : '—';
+    $('rCents').textContent = enough ? '보기 ' + MLEVELS[M.best][1] + '개 중에서 맞힘' + (M.best >= 5 ? ' · 한 군데만 다른 보기' : '') : '문제가 적어 이번 판은 기록하지 않았어요';
+    $('rScore').textContent = M.total + '문제 중 ' + M.correct + '문제 (' + (M.total ? Math.round(M.correct / M.total * 100) : 0) + '%)';
+    const cmp = $('rCompare'); cmp.className = '';
+    if (!enough) cmp.textContent = '—';
+    else if (!prev) cmp.textContent = '첫 기록';
+    else if (notes > prev.notes || (notes === prev.notes && M.best > prev.level)) { cmp.textContent = '더 길게 기억했어요'; cmp.className = 'delta-up'; }
+    else if (M.best < prev.level) { cmp.textContent = '오늘은 조금 짧아요'; cmp.className = 'delta-down'; }
+    else cmp.textContent = '비슷해요';
+    $('rTotal').textContent = minText(totalMs()) + ' / 8시간';
+    $('rNote').textContent = '틀린 문제는 정답 모양을 보며 다시 들으면 기억이 단단해집니다. 두 훈련을 번갈아 해 보세요.';
+    show('result');
+  }
+  function renderMelHome() {
+    const ms = melSessions();
+    $('mNew').style.display = ms.length ? 'none' : '';
+    if (ms.length) {
+      const last = ms[ms.length - 1];
+      $('mLevel').innerHTML = last.notes + '<small>음 가락</small>';
+      $('mLevelNote').textContent = '지난 연습에서 ' + last.notes + '음 가락의 모양을 기억했습니다. 맞힐수록 가락이 길어집니다.';
+    } else $('mLevel').innerHTML = '<span class="first-try">첫 도전</span>';
+    const pts = ms.slice(-10).map(x => x.level), sp = $('mSpark');
+    if (pts.length > 1) sp.innerHTML = '<path d="' + pts.map((v, i) => (i ? 'L' : 'M') + (4 + 112 * i / (pts.length - 1)).toFixed(1) + ' ' + (40 - 36 * (v - 1) / 8).toFixed(1)).join(' ') + '"/>';
+    else sp.innerHTML = '';
+  }
+  function renderMelChart() {
+    const ms = melSessions().slice(-30), box = $('mChartBox');
+    if (!ms.length) { box.innerHTML = '<div class="empty">아직 선율 기억 기록이 없습니다.</div>'; return; }
+    const W = 520, H = 200, L = 44, R = 14, T = 14, B = 28;
+    const y = n => T + (H - T - B) * (1 - (n - 3) / 6), x = i => ms.length === 1 ? (L + W - R) / 2 : L + (W - L - R) * i / (ms.length - 1);
+    let svg = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="선율 기억 기록 그래프">';
+    [3, 5, 7, 9].forEach(n => { svg += '<line class="grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(n) + '" y2="' + y(n) + '"/><text x="' + (L - 8) + '" y="' + (y(n) + 4) + '" text-anchor="end">' + n + '음</text>'; });
+    if (ms.length > 1) svg += '<polyline class="ln" points="' + ms.map((m, i) => x(i) + ',' + y(m.notes)).join(' ') + '"/>';
+    ms.forEach((m, i) => { svg += '<circle class="pt" cx="' + x(i) + '" cy="' + y(m.notes) + '" r="4.5"/>'; });
+    box.innerHTML = svg + '<text x="' + L + '" y="' + (H - 6) + '">처음</text></svg>';
+  }
+
+  // 선율 기억 처음 안내: 예시 '도-미-솔-미' 와 다른 모양 하나를 보여 주고, 듣고 나면 정답 그림에 표시
+  const MG = { ex: [0, 2, 4, 2], other: [4, 2, 0, 2] };
+  function openMelGuide() {
+    show('mguide');
+    $('mgOpts').innerHTML = [MG.ex, MG.other].map((o, i) => '<button class="mopt" disabled>' + contourSvg(o) + '<span class="arrows">' + arrows(o) + '</span><span>' + (i + 1) + '번</span></button>').join('');
+    $('mgTip').textContent = "아래 예시를 들어 보세요. '도-미-솔-미'는 올라갔다가 한 번 내려옵니다.";
+    $('mgGo').disabled = true;
+  }
+  $('mgPlay').addEventListener('click', () => {
+    playMelody(MG.ex, null, () => {
+      const b = $('mgOpts').querySelectorAll('.mopt'); b[0].classList.add('ok'); b[1].classList.add('dim');
+      $('mgTip').textContent = '방금 들은 가락은 1번(초록) 모양입니다. 진짜 연습도 이렇게 고르면 됩니다. 헷갈리면 「한 번 더 듣기」를 몇 번이든 누르세요.';
+      $('mgGo').disabled = false;
+    });
+  });
+  function mgDone() { data.settings.mguide = 'done'; save(); startMel(); }
+  $('mgGo').addEventListener('click', mgDone);
+  $('mgSkip').addEventListener('click', mgDone);
 
   // ---------- 처음 안내 ----------
   // 시니어가 '높다/낮다'를 무엇으로 고르는지 먼저 몸으로 익히게 한다: 도레미 계단 → 올라감 예 → 내려감 예 → 직접 3번
@@ -775,18 +1066,19 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
   function finish() {
     stopPlay();
     const th = threshold();
-    const prev = data.sessions[data.sessions.length - 1];
+    const ps = pitchSessions(), prev = ps[ps.length - 1];
     // 몸풀기 뒤 본 문제가 4개 미만이면 수준을 잴 수 없으니 기록하지 않는다
     const enough = S.real >= 4;
     if (enough) {
       data.sessions.push({ ts: Date.now(), threshold: Math.round(th * 10) / 10, correct: S.correct, total: S.total, register: data.settings.register, ms: Math.min(Date.now() - S.startAt, 30 * 60000), score: S.score, maxCombo: S.maxCombo });
     }
-    const wins = enough ? reward(th, prev) : [];
-    save();
+    const wins = enough ? reward({ mode: 'pitch', th, prev }) : [];
+    save(); lastMode = 'pitch';
     $('rPoints').textContent = S.score + (enough && S.score >= data.game.bestScore && S.score > 0 && wins.some(w => w.kind === 'best') ? ' · 최고 기록' : '');
     $('rCombo').textContent = S.maxCombo;
     $('rWins').innerHTML = wins.map(w => '<div class="win"><div class="b" style="background:' + w.color + '">' + w.icon + '</div><div><b>' + w.title + '</b><span>' + w.desc + '</span></div></div>').join('');
     if (wins.some(w => w.big)) setTimeout(confetti, 250);
+    $('rHeadLabel').textContent = '오늘 알아들은 가장 작은 차이';
     $('rLevel').textContent = enough ? frac(th) : '—';
     $('rCents').textContent = enough ? levelText(th) + ' · ' + Math.round(th) + '센트' : '문제가 적어 이번 판은 기록하지 않았어요';
     $('rScore').textContent = S.total + '문제 중 ' + S.correct + '문제 (' + (S.total ? Math.round(S.correct / S.total * 100) : 0) + '%)';
@@ -821,32 +1113,48 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     { id: 'hour1', icon: '1h', color: '#7c3aed', title: '1시간', desc: '누적 연습 1시간', ok: c => c.total >= 3600e3 },
     { id: 'hour8', icon: '8h', color: '#6d28d9', title: '8시간 완주', desc: '누적 연습 8시간', ok: c => c.total >= GOAL_MS },
     { id: 'games50', icon: '50', color: '#475569', title: '50판', desc: '50판 마치기', ok: c => c.sessions >= 50 },
+    { id: 'mel5', icon: '5음', color: '#1d4ed8', title: '다섯 음 가락', desc: '선율 기억 5음 맞히기', ok: c => c.melNotes >= 5 },
+    { id: 'mel7', icon: '7음', color: '#1e40af', title: '일곱 음 가락', desc: '선율 기억 7음 맞히기', ok: c => c.melNotes >= 7 },
+    { id: 'mel9', icon: '9음', color: '#1e3a8a', title: '아홉 음 가락', desc: '선율 기억 9음 맞히기', ok: c => c.melNotes >= 9 },
+    { id: 'both', icon: '둘', color: '#4338ca', title: '두 훈련 다', desc: '하루에 두 훈련 모두 하기', ok: c => c.bothToday },
     { id: 'mission10', icon: '도전', color: '#b45309', title: '도전 10번', desc: '오늘의 도전 10번 성공', ok: c => c.missions >= 10 }
   ];
   const MISSIONS = [
     { t: '콤보 6번 이상 만들기', ok: c => c.maxCombo >= 6 },
     { t: '한 판에 20문제 이상 풀기', ok: c => c.total >= 20 },
     { t: '한 판에 300점 넘기기', ok: c => c.score >= 300 },
-    { t: '지난번보다 더 작은 차이 알아듣기', ok: c => c.improved },
+    { t: '지난번 기록 넘기기', ok: c => c.improved },
     { t: '반음의 1/4보다 작은 차이 맞히기', ok: c => c.bestCents <= 25 },
+    { t: '오늘 두 훈련 모두 하기', ok: c => c.bothToday },
+    { t: '선율 기억에서 5음 가락 맞히기', ok: c => c.mode === 'melody' && c.melNotes >= 5 },
     { t: '오늘 두 판 하기', ok: c => c.todayGames >= 2 },
     { t: '맞힌 비율 70% 넘기기', ok: c => c.total >= 10 && c.correct / c.total > 0.7 }
   ];
   const todayMission = () => MISSIONS[((dayNo(Date.now()) % MISSIONS.length) + MISSIONS.length) % MISSIONS.length];
 
-  function reward(th, prev) {
-    const g = data.game, wins = [], today = dayNo(Date.now());
+  function reward(info) {
+    const g = data.game, wins = [], today = dayNo(Date.now()), R = info.mode === 'melody' ? M : S, th = info.mode === 'pitch' ? info.th : 999;
     const before = levelOf(g.xp);
-    let gain = S.score;
-    const ctx = { sessions: data.sessions.length, streak: streakDays(), th, maxCombo: S.maxCombo, total: totalMs(), missions: Object.keys(g.missions).length,
-      score: S.score, correct: S.correct, improved: !!prev && th < prev.threshold * 0.95, bestCents: S.best, todayGames: data.sessions.filter(x => dayNo(x.ts) === today).length };
-    if (!g.missions[today] && todayMission().ok(Object.assign({}, ctx, { total: S.total }))) {
+    let gain = R.score;
+    const todays = data.sessions.filter(x => dayNo(x.ts) === today);
+    const ctx = { mode: info.mode, sessions: data.sessions.length, streak: streakDays(), th, maxCombo: R.maxCombo, total: totalMs(), missions: Object.keys(g.missions).length,
+      score: R.score, correct: R.correct,
+      improved: info.mode === 'pitch' ? !!info.prev && th < info.prev.threshold * 0.95 : !!info.prev && info.notes > info.prev.notes,
+      bestCents: info.mode === 'pitch' ? S.best : 999, todayGames: todays.length,
+      bothToday: todays.some(x => x.mode === 'melody') && todays.some(x => x.mode !== 'melody'),
+      melNotes: Math.max(0, ...melSessions().map(x => x.notes || 0)) };
+    const prevScore = g.bestScore;
+    if (!g.missions[today] && todayMission().ok(Object.assign({}, ctx, { total: R.total }))) {
       g.missions[today] = Date.now(); gain += 100; ctx.missions++;
       wins.push({ icon: '도전', color: '#b45309', title: '오늘의 도전 성공', desc: todayMission().t + ' · +100 XP' });
     }
-    if (S.score > g.bestScore) { if (g.bestScore > 0) wins.push({ kind: 'best', big: true, icon: '최고', color: '#be185d', title: '최고 점수 경신', desc: g.bestScore + '점 → ' + S.score + '점' }); g.bestScore = S.score; }
-    const bestTh = Math.min(...data.sessions.slice(0, -1).map(x => x.threshold), 999);
-    if (data.sessions.length > 1 && th < bestTh) wins.push({ big: true, icon: frac(th), color: '#0f766e', title: '가장 섬세하게 들은 날', desc: '지금까지 중 가장 작은 차이를 알아들었어요' });
+    if (R.score > g.bestScore) { if (g.bestScore > 0) wins.push({ kind: 'best', big: true, icon: '최고', color: '#be185d', title: '최고 점수 경신', desc: prevScore + '점 → ' + R.score + '점' }); g.bestScore = R.score; }
+    if (info.mode === 'melody') {
+      const ms = melSessions(), bestN = Math.max(0, ...ms.slice(0, -1).map(x => x.notes || 0));
+      if (ms.length > 1 && info.notes > bestN) wins.push({ big: true, icon: info.notes + '음', color: '#0f766e', title: '가장 긴 가락 기억', desc: '지금까지 중 가장 긴 ' + info.notes + '음 가락을 기억했어요' });
+    }
+    const pss = pitchSessions(), bestTh = Math.min(...pss.slice(0, -1).map(x => x.threshold), 999);
+    if (info.mode === 'pitch' && pss.length > 1 && th < bestTh) wins.push({ big: true, icon: frac(th), color: '#0f766e', title: '가장 섬세하게 들은 날', desc: '지금까지 중 가장 작은 차이를 알아들었어요' });
     BADGES.forEach(b => { if (!g.badges[b.id] && b.ok(ctx)) { g.badges[b.id] = Date.now(); wins.push({ big: true, icon: b.icon, color: b.color, title: '업적 · ' + b.title, desc: b.desc }); } });
     g.xp += gain;
     const after = levelOf(g.xp);
@@ -897,15 +1205,16 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     return n;
   }
   function renderHome() {
-    const ss = data.sessions;
-    $('startMin').textContent = data.settings.minutes;
+    const ss = pitchSessions(), all = data.sessions;
+    $('startMin').textContent = data.settings.minutes; $('startMin2').textContent = data.settings.minutes;
+    renderMelHome();
     if (ss.length) {
       const last = ss[ss.length - 1].threshold;
       $('hLevel').innerHTML = frac(last) + '<small>' + (last >= 95 ? '' : '반음') + '</small>';
       $('hLevelNote').textContent = '지난 연습에서 ' + levelText(last) + '(' + Math.round(last) + '센트) 차이까지 알아들었습니다.';
     } else { $('hLevel').textContent = '—'; }
     const week = Date.now() - 7 * 864e5;
-    $('hWeek').textContent = ss.filter(s => s.ts >= week).length + '번';
+    $('hWeek').textContent = all.filter(s => s.ts >= week).length + '번';
     $('hStreak').textContent = streakDays() + '일';
     const tot = totalMs();
     $('hTotal').textContent = minText(tot);
@@ -919,9 +1228,11 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
   }
 
   function renderHistory() {
-    const ss = data.sessions.slice(-30);
+    const ss = pitchSessions().slice(-30);
     const box = $('chartBox'), list = $('listBox');
-    if (!ss.length) { box.innerHTML = '<div class="empty">아직 기록이 없습니다. 연습을 한 번 해 보세요.</div>'; list.innerHTML = ''; list.style.display = 'none'; return; }
+    renderMelChart();
+    if (!data.sessions.length) list.style.display = 'none';
+    if (!ss.length) { box.innerHTML = '<div class="empty">아직 기록이 없습니다. 연습을 한 번 해 보세요.</div>'; if (data.sessions.length) renderList(); return; }
     list.style.display = '';
     const W = 520, H = 240, L = 44, R = 14, T = 14, B = 28;
     const vals = ss.map(s => pieces(s.threshold));
@@ -942,10 +1253,14 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     vals.forEach((v, i) => { svg += '<circle class="pt" cx="' + x(i) + '" cy="' + y(v) + '" r="4.5"><title>' + levelText(ss[i].threshold) + '</title></circle>'; });
     svg += '<text x="' + L + '" y="' + (H - 6) + '">처음</text><text x="' + (W - R) + '" y="' + (H - 6) + '" text-anchor="end">최근</text></svg>';
     box.innerHTML = svg;
-    const reg = { low: '낮게', mid: '가운데', high: '높게' };
-    list.innerHTML = '<p class="eyebrow">최근 연습</p>' + data.sessions.slice(-7).reverse().map(s => {
-      const d = new Date(s.ts);
-      return '<div class="kv"><span>' + (d.getMonth() + 1) + '/' + d.getDate() + ' · ' + (reg[s.register] || '') + '</span><b>' + levelText(s.threshold) + ' · ' + s.correct + '/' + s.total + '</b></div>';
+    renderList();
+  }
+  function renderList() {
+    const list = $('listBox');
+    list.style.display = '';
+    list.innerHTML = '<p class="eyebrow">최근 연습</p>' + data.sessions.slice(-8).reverse().map(s => {
+      const d = new Date(s.ts), mel = s.mode === 'melody';
+      return '<div class="kv"><span>' + (d.getMonth() + 1) + '/' + d.getDate() + ' · ' + (mel ? '선율 기억' : '음정 듣기') + '</span><b>' + (mel ? s.notes + '음' : levelText(s.threshold)) + ' · ' + s.correct + '/' + s.total + '</b></div>';
     }).join('');
   }
 
@@ -983,6 +1298,7 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
   // ---------- 화면 이동 ----------
   function show(id) {
     if (id !== 'play' && S.on) stopPlay();
+    if (id !== 'mplay' && M.on) stopMel();
     document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
     if (id === 'home') { renderHome(); renderGame(); }
     if (id === 'badges') renderBadges();
@@ -991,16 +1307,20 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     window.scrollTo(0, 0);
   }
   $('startBtn').addEventListener('click', start);
-  $('againBtn').addEventListener('click', start);
+  let lastMode = 'pitch';
+  $('againBtn').addEventListener('click', () => lastMode === 'melody' ? startMel() : start());
+  $('startMelBtn').addEventListener('click', startMel);
+  $('mQuitBtn').addEventListener('click', () => { if (M.total > 0) finishMel(); else show('home'); });
+  const endAny = () => { if (S.on && S.total > 0) finish(); else if (M.on && M.total > 0) finishMel(); };
   $('upBtn').addEventListener('click', () => answer(true));
   $('downBtn').addEventListener('click', () => answer(false));
   $('replayBtn').addEventListener('click', () => playPair());
   $('quitBtn').addEventListener('click', () => { if (S.total > 0) finish(); else show('home'); });
-  $('toHistory').addEventListener('click', () => { if (S.on && S.total > 0) finish(); show('history'); });
-  $('toSettings').addEventListener('click', () => { if (S.on && S.total > 0) finish(); show('settings'); });
+  $('toHistory').addEventListener('click', () => { endAny(); show('history'); });
+  $('toSettings').addEventListener('click', () => { endAny(); show('settings'); });
   $('toWhy').addEventListener('click', () => show('why'));
   $('toGuide').addEventListener('click', () => openGuide(false));
-  $('toBadges').addEventListener('click', () => { if (S.on && S.total > 0) finish(); show('badges'); });
+  $('toBadges').addEventListener('click', () => { endAny(); show('badges'); });
   $('bBack').addEventListener('click', () => show('home'));
   $('rHome').addEventListener('click', () => show('home'));
   $('rHistory').addEventListener('click', () => show('history'));
@@ -1008,6 +1328,7 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
   $('sBack').addEventListener('click', () => show('home'));
   $('wBack').addEventListener('click', () => show('home'));
   document.addEventListener('keydown', e => {
+    if (M.on && !M.busy && /^[1-4]$/.test(e.key)) { melAnswer(+e.key - 1); return; }
     if (!S.on || $('help').classList.contains('on')) return;
     if (e.key === 'ArrowUp') { e.preventDefault(); answer(true); }
     else if (e.key === 'ArrowDown') { e.preventDefault(); answer(false); }
