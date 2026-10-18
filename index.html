@@ -151,6 +151,32 @@ input[type="range"] { width: 100%; height: 40px; accent-color: var(--accent); }
 .why h3 { font-size: 0.95em; margin: 14px 0 4px; }
 .why p { font-size: 0.88em; color: var(--sub); }
 .why a { color: var(--accent); }
+/* 처음 안내 */
+.gdots { display: flex; gap: 6px; justify-content: center; margin: 4px 0 12px; }
+.gdots i { width: 28px; height: 6px; border-radius: 6px; background: var(--line); }
+.gdots i.on { background: var(--accent); }
+.gstage { position: relative; height: 210px; border-radius: 16px; background: var(--surface-2); margin: 14px 0; overflow: hidden; }
+.gstage .axis { position: absolute; left: 20px; right: 20px; top: 50%; border-top: 1px dashed var(--line); }
+.gnote { position: absolute; width: 50px; height: 50px; margin: -25px 0 0 -25px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; background: var(--surface); color: var(--sub); border: 2px solid var(--line); transition: top .45s cubic-bezier(.2,.8,.2,1), background .15s, color .15s; }
+.gnote.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); outline: 8px solid var(--accent-soft); }
+.gnote small { position: absolute; top: 54px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 0.7em; font-weight: 600; color: var(--sub); }
+.gbody { font-size: 1.02em; }
+.gbody b.upw { color: var(--up); } .gbody b.downw { color: var(--down); }
+.gplay { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; border: 2px solid var(--accent); color: var(--accent); background: var(--accent-soft); }
+.gplay svg { width: 18px; height: 18px; }
+.ganswers { display: none; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.ganswers.on { display: grid; }
+.gnav { display: flex; gap: 10px; margin-top: 12px; }
+.gnav .back { flex: 0 0 34%; }
+.gnav .primary { flex: 1; }
+.skip { display: block; margin: 8px auto 0; background: none; border: none; color: var(--sub); text-decoration: underline; min-height: 44px; font-size: 0.88em; }
+.ans small { font-size: 0.7em; font-weight: 500; opacity: 0.85; }
+.note small { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 0.62em; font-weight: 600; color: var(--sub); }
+.helpbtn { min-height: 48px; padding: 8px 14px; font-size: 0.88em; color: var(--sub); }
+.overlay { position: fixed; inset: 0; background: rgba(10,14,20,.55); display: none; align-items: flex-end; justify-content: center; z-index: 40; padding: 16px; }
+.overlay.on { display: flex; }
+.sheet { width: 100%; max-width: 520px; background: var(--surface); border-radius: 22px; padding: 22px 20px; animation: fade .25s ease; }
+.sheet .row { margin-top: 12px; }
 /* 게임 요소 */
 .lvl { display: flex; align-items: center; gap: 14px; }
 .lvl .medal { flex: none; width: 52px; height: 52px; border-radius: 16px; background: linear-gradient(135deg, var(--accent), #7b5cff); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 1.15em; }
@@ -238,10 +264,11 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     <div class="card">
       <p class="eyebrow">연습 방법</p>
       <ol class="steps">
-        <li>두 음을 차례로 들려 드립니다.</li>
-        <li>두 번째 음이 더 높은지 낮은지 고릅니다. 천천히 골라도 됩니다.</li>
-        <li>맞히면 차이가 작아지고, 틀리면 정답 방향을 보여 주며 한 번 더 들려 드립니다.</li>
+        <li>소리 두 개를 차례로 들려 드립니다.</li>
+        <li>두 번째 소리가 <b>올라갔는지, 내려갔는지</b> 고릅니다. '도→솔'처럼 올라가면 올라갔어요, '솔→도'처럼 내려가면 내려갔어요.</li>
+        <li>맞히면 차이가 작아지고, 틀리면 정답을 보여 주며 한 번 더 들려 드립니다.</li>
       </ol>
+      <button class="ghost" id="toGuide" style="margin-top:8px">처음 안내 다시 보기</button>
     </div>
     <button class="ghost" id="toWhy">이 연습이 왜 도움이 되나요?</button>
   </section>
@@ -258,20 +285,40 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
       <span class="tag" id="pLevel">차이 반음</span>
       <div class="axis"></div>
       <svg class="link" aria-hidden="true"><line id="pLink" x1="34%" y1="50%" x2="66%" y2="50%"/></svg>
-      <div class="note n1" id="d1">1</div>
-      <div class="note n2" id="d2">2</div>
+      <div class="note n1" id="d1">1<small>첫 소리</small></div>
+      <div class="note n2" id="d2">2<small>두 번째 소리</small></div>
       <div class="hint" id="pHint"></div>
     </div>
     <div class="q" id="pQ">잘 들어 보세요</div>
     <div class="answers">
-      <button class="ans up" id="upBtn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>더 높아요</button>
-      <button class="ans down" id="downBtn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>더 낮아요</button>
+      <button class="ans up" id="upBtn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>올라갔어요<small>더 높은 소리</small></button>
+      <button class="ans down" id="downBtn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>내려갔어요<small>더 낮은 소리</small></button>
     </div>
     <div class="subrow">
       <button class="replay" id="replayBtn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>다시 듣기</button>
+      <button class="helpbtn" id="helpBtn">어떻게 하나요?</button>
       <div class="trail" id="pTrail" aria-hidden="true"></div>
     </div>
     <div class="feedback" id="pFb" role="status" aria-live="polite"></div>
+  </section>
+
+  <!-- 처음 안내 -->
+  <section class="screen" id="guide">
+    <div class="gdots" id="gDots" aria-hidden="true"></div>
+    <div class="card">
+      <p class="eyebrow" id="gNo">1 / 4</p>
+      <h2 id="gHead"></h2>
+      <p class="gbody" id="gBody"></p>
+      <div class="gstage" id="gStage"><div class="axis"></div></div>
+      <button class="gplay" id="gPlay"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg><span id="gPlayText">들어 보기</span></button>
+      <div class="ganswers" id="gAns">
+        <button class="ans up" id="gUp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>올라갔어요</button>
+        <button class="ans down" id="gDown"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>내려갔어요</button>
+      </div>
+      <div class="feedback" id="gFb" role="status" aria-live="polite"></div>
+    </div>
+    <div class="gnav"><button class="back" id="gPrev">이전</button><button class="primary" id="gNext" disabled>다음</button></div>
+    <button class="skip" id="gSkip">안내 건너뛰기</button>
   </section>
 
   <!-- 결과 화면 -->
@@ -374,8 +421,17 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     <button class="primary" id="sBack">완료</button>
   </section>
 
+  <div class="overlay" id="help" role="dialog" aria-modal="true" aria-labelledby="helpHead">
+    <div class="sheet">
+      <p class="eyebrow">도움말 · 시간은 멈춰 있어요</p>
+      <h2 id="helpHead">두 번째 소리만 보세요</h2>
+      <p class="gbody">두 번째 소리가 첫 소리보다 <b class="upw" style="color:var(--up)">위로 올라가면</b> 「올라갔어요」, <b style="color:var(--down)">아래로 내려가면</b> 「내려갔어요」를 누르세요. 예시를 들어 보세요.</p>
+      <div class="row"><button id="helpUp">도 → 솔 (올라감)</button><button id="helpDown">솔 → 도 (내려감)</button></div>
+      <button class="primary" id="helpClose" style="margin-top:12px">알겠어요, 계속하기</button>
+    </div>
+  </div>
   <canvas id="confetti" aria-hidden="true"></canvas>
-  <footer>연습 도구이며 치료·예방 효과를 약속하지 않습니다 · SOOD 음감 연습 v1.2.0</footer>
+  <footer>연습 도구이며 치료·예방 효과를 약속하지 않습니다 · SOOD 음감 연습 v1.3.0</footer>
 </div>
 
 <script>
@@ -470,10 +526,10 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     const [lo, hi] = RANGES[data.settings.register] || RANGES.mid;
     const base = midiHz(lo + Math.random() * (hi - lo));
     const up = Math.random() < 0.5;
-    const cents = S.warm > 0 ? Math.max(100, S.cents) : S.cents;
+    const cents = S.warm > 0 ? Math.max(200, S.cents) : S.cents;
     S.cur = { base, second: base * Math.pow(2, (up ? cents : -cents) / 1200), up, cents };
     $('pCount').textContent = (S.total + 1) + '번째';
-    $('pLevel').textContent = S.warm > 0 ? '몸풀기 · 반음' : '차이 ' + levelText(cents);
+    $('pLevel').textContent = S.warm > 0 ? '몸풀기 · 온음' : '차이 ' + levelText(cents);
     $('pQ').textContent = '잘 들어 보세요';
     $('pHint').textContent = '';
     $('pFb').className = 'feedback'; $('pFb').textContent = '';
@@ -505,7 +561,7 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     at(lead + dur * 2 + gap, () => {
       mark('d2', false);
       if (after) { after(); return; }
-      $('pQ').textContent = '두 번째 음이 더 높나요, 낮나요?'; setAnswerable(true);
+      $('pQ').textContent = '두 번째 소리가 올라갔나요, 내려갔나요?'; setAnswerable(true);
     });
   }
 
@@ -518,6 +574,112 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     S.trail.push(ok); S.trail = S.trail.slice(-12);
     $('pTrail').innerHTML = S.trail.map(v => '<i class="' + (v ? 'ok' : 'no') + '"></i>').join('');
   }
+
+  // ---------- 처음 안내 ----------
+  // 시니어가 '높다/낮다'를 무엇으로 고르는지 먼저 몸으로 익히게 한다: 도레미 계단 → 올라감 예 → 내려감 예 → 직접 3번
+  const SOL = ['도', '레', '미', '파', '솔'], C4 = 60;
+  const GSTEPS = [
+    { head: '소리에는 높낮이가 있어요', body: "'도레미파솔' 하고 부르면 소리가 <b>계단처럼 한 칸씩 올라갑니다</b>. 위로 올라갈수록 <b class=\"upw\">높은 소리</b>입니다.", notes: [0, 2, 4, 5, 7], names: SOL, play: '도레미파솔 들어 보기' },
+    { head: '두 번째 소리가 올라가면', body: "'도' 다음에 '솔'이 나오면 소리가 <b class=\"upw\">위로 올라갑니다</b>. 이럴 때 「↑ 올라갔어요」를 누르시면 됩니다.", notes: [0, 7], names: ['도', '솔'], play: '도 → 솔 들어 보기' },
+    { head: '두 번째 소리가 내려가면', body: "'솔' 다음에 '도'가 나오면 소리가 <b class=\"downw\">아래로 내려갑니다</b>. 이럴 때 「↓ 내려갔어요」를 누르시면 됩니다.", notes: [7, 0], names: ['솔', '도'], play: '솔 → 도 들어 보기' },
+    { head: '직접 해 볼까요?', body: '두 소리를 듣고 두 번째 소리가 <b>올라갔는지 내려갔는지</b> 골라 보세요. <b>3번 맞히면</b> 끝납니다.', quiz: true, play: '문제 듣기' },
+    { head: '잘하셨어요!', body: '진짜 연습도 똑같습니다. 처음엔 차이가 크고, 맞힐수록 아주 작아집니다. 헷갈리면 「다시 듣기」를 몇 번이든 누르세요. <b>빨리 누르지 않아도 됩니다.</b>', done: true }
+  ];
+  const G = { step: 0, heard: false, quiz: null, right: 0, autoStart: false, token: 0 };
+  window.__guide = G; // 검사용
+
+  function gDraw(notes, names, hidePitch) {
+    const st = $('gStage');
+    st.querySelectorAll('.gnote').forEach(n => n.remove());
+    const mid = (Math.max(...notes) + Math.min(...notes)) / 2, k = notes.length > 2 ? 12 : 9;
+    notes.forEach((m, i) => {
+      const d = document.createElement('div');
+      d.className = 'gnote';
+      d.style.left = (notes.length === 1 ? 50 : 18 + 64 * i / (notes.length - 1)) + '%';
+      d.style.top = 'calc(50% ' + (hidePitch ? '+ 0px' : (m >= mid ? '- ' : '+ ') + Math.abs(m - mid) * k + 'px') + ')';
+      d.dataset.m = m - mid;
+      d.innerHTML = (names ? names[i] : (i + 1)) + '<small>' + (notes.length === 2 ? (i ? '두 번째 소리' : '첫 소리') : '') + '</small>';
+      st.appendChild(d);
+    });
+  }
+  function gReveal() {
+    $('gStage').querySelectorAll('.gnote').forEach(d => { const v = +d.dataset.m; d.style.top = 'calc(50% ' + (v >= 0 ? '- ' : '+ ') + Math.abs(v) * 9 + 'px)'; });
+  }
+  function gPlay(notes, base, after) {
+    try { audio(); } catch (e) { return; }
+    const dur = 0.7, gap = notes.length > 2 ? 0.1 : 0.45, t0 = ac.currentTime + 0.1, tok = ++G.token;
+    const ds = $('gStage').querySelectorAll('.gnote');
+    notes.forEach((m, i) => {
+      const at = i * (dur + gap);
+      tone(midiHz(base + m), t0 + at, dur);
+      setTimeout(() => { if (tok === G.token && ds[i]) ds[i].classList.add('on'); }, (0.1 + at) * 1000);
+      setTimeout(() => { if (tok === G.token && ds[i]) ds[i].classList.remove('on'); }, (0.1 + at + dur) * 1000);
+    });
+    setTimeout(() => { if (tok === G.token && after) after(); }, (0.1 + notes.length * (dur + gap)) * 1000);
+  }
+  function gNewQuiz() {
+    const size = [7, 5, 4][Math.min(2, G.right)]; // 5도 → 4도 → 장3도, 아직은 차이가 큼
+    const up = Math.random() < 0.5;
+    G.quiz = { up, notes: up ? [0, size] : [size, 0] };
+    gDraw(G.quiz.notes, null, true);
+    $('gUp').disabled = $('gDown').disabled = true;
+  }
+  function gRender() {
+    const st = GSTEPS[G.step];
+    $('gDots').innerHTML = GSTEPS.slice(0, 4).map((_, i) => '<i class="' + (i <= Math.min(G.step, 3) ? 'on' : '') + '"></i>').join('');
+    $('gNo').textContent = st.done ? '안내 끝' : (G.step + 1) + ' / 4';
+    $('gHead').textContent = st.head; $('gBody').innerHTML = st.body;
+    $('gPlayText').textContent = st.play || '';
+    $('gPlay').style.display = st.done ? 'none' : '';
+    $('gStage').style.display = st.done ? 'none' : '';
+    $('gAns').classList.toggle('on', !!st.quiz);
+    $('gFb').className = 'feedback'; $('gFb').textContent = '';
+    $('gPrev').style.visibility = G.step > 0 && !st.done ? 'visible' : 'hidden';
+    $('gNext').textContent = st.done ? '연습 시작' : '다음';
+    G.heard = false; G.token++;
+    if (st.quiz) { G.right = 0; gNewQuiz(); $('gNext').disabled = true; }
+    else if (st.done) $('gNext').disabled = false;
+    else { gDraw(st.notes, st.names, false); $('gNext').disabled = true; }
+  }
+  function openGuide(autoStart) { G.step = 0; G.autoStart = !!autoStart; show('guide'); gRender(); }
+  function gAnswer(saysUp) {
+    if (!G.quiz || $('gUp').disabled) return;
+    $('gUp').disabled = $('gDown').disabled = true;
+    const ok = saysUp === G.quiz.up, fb = $('gFb');
+    gReveal();
+    if (ok) {
+      G.right++;
+      fb.className = 'feedback ok'; fb.textContent = '맞았어요! (' + G.right + ' / 3)';
+      if (G.right >= 3) { $('gNext').disabled = false; fb.textContent = '3번 다 맞혔어요! 「다음」을 누르세요'; return; }
+      setTimeout(() => { if (GSTEPS[G.step].quiz) { gNewQuiz(); fb.className = 'feedback'; } }, 1300);
+    } else {
+      fb.className = 'feedback no'; fb.textContent = '아쉬워요. 그림처럼 ' + (G.quiz.up ? '올라갔어요' : '내려갔어요') + '. 다시 들어 보세요';
+      setTimeout(() => gPlay(G.quiz.notes, C4, () => setTimeout(() => { if (GSTEPS[G.step].quiz) { gNewQuiz(); fb.className = 'feedback'; } }, 600)), 700);
+    }
+  }
+  $('gPlay').addEventListener('click', () => {
+    const st = GSTEPS[G.step];
+    if (st.quiz) { if (G.quiz) gPlay(G.quiz.notes, C4, () => { $('gUp').disabled = $('gDown').disabled = false; }); return; }
+    gPlay(st.notes, C4, () => { G.heard = true; $('gNext').disabled = false; });
+  });
+  $('gUp').addEventListener('click', () => gAnswer(true));
+  $('gDown').addEventListener('click', () => gAnswer(false));
+  $('gPrev').addEventListener('click', () => { if (G.step > 0) { G.step--; gRender(); } });
+  function gFinish() { data.settings.guide = 'done'; save(); if (G.autoStart) start(); else show('home'); }
+  $('gNext').addEventListener('click', () => { if (GSTEPS[G.step].done) gFinish(); else { G.step++; gRender(); } });
+  $('gSkip').addEventListener('click', gFinish);
+
+  // ---------- 연습 중 도움말 (시간 멈춤) ----------
+  function openHelp() { if (!S.on) return; S.pausedAt = Date.now(); clearInterval(S.timer); $('help').classList.add('on'); }
+  function closeHelp() {
+    $('help').classList.remove('on');
+    if (S.on && S.pausedAt) { S.endAt += Date.now() - S.pausedAt; S.startAt += Date.now() - S.pausedAt; S.pausedAt = 0; S.timer = setInterval(S.tick, 500); }
+  }
+  const helpDemo = up => { try { audio(); } catch (e) { return; } const t = ac.currentTime + 0.05; tone(midiHz(up ? 60 : 67), t, 0.7); tone(midiHz(up ? 67 : 60), t + 1.15, 0.7); };
+  $('helpBtn').addEventListener('click', openHelp);
+  $('helpClose').addEventListener('click', closeHelp);
+  $('helpUp').addEventListener('click', () => helpDemo(true));
+  $('helpDown').addEventListener('click', () => helpDemo(false));
 
   // ---------- 점수·효과음 ----------
   function points(cents) { return Math.round(10 + 10 * Math.log2(Math.max(1, 100 / cents))); }
@@ -573,7 +735,7 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
       setTimeout(next, 900);
     } else {
       // 틀리면 정답 방향을 보여 준 채로 두 음을 한 번 더 들려준다
-      fb.className = 'feedback no'; fb.textContent = '아쉬워요. 두 번째 음이 더 ' + (S.cur.up ? '높았어요' : '낮았어요') + '. 한 번 더 들어 보세요';
+      fb.className = 'feedback no'; fb.textContent = '아쉬워요. 두 번째 소리가 ' + (S.cur.up ? '올라갔어요' : '내려갔어요') + '. 한 번 더 들어 보세요';
       $('pHint').textContent = '정답 방향을 보며 들어 보세요';
       setTimeout(() => { if (S.on) playPair(() => setTimeout(next, 500)); }, 900);
     }
@@ -589,6 +751,7 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
 
   function start() {
     try { audio(); } catch (e) { show('home'); return; }
+    if (data.settings.guide !== 'done') { openGuide(true); return; }
     Object.assign(S, { on: true, cents: startCents(), streak: 0, dir: 0, reversals: [], best: 999, total: 0, correct: 0, real: 0, warm: WARM, cur: null, trail: [], score: 0, combo: 0, maxCombo: 0 });
     $('pScore').textContent = '0'; $('pCombo').classList.remove('on');
     $('pTrail').innerHTML = '';
@@ -600,7 +763,7 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
       $('pTime').style.transform = 'scaleX(' + Math.min(1, Math.max(0, 1 - left / span)) + ')';
       $('pClock').textContent = fmtClock(left);
     };
-    S.timer = setInterval(tick, 500); tick();
+    S.tick = tick; S.timer = setInterval(tick, 500); tick();
     show('play');
     newTrial();
   }
@@ -836,6 +999,7 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
   $('toHistory').addEventListener('click', () => { if (S.on && S.total > 0) finish(); show('history'); });
   $('toSettings').addEventListener('click', () => { if (S.on && S.total > 0) finish(); show('settings'); });
   $('toWhy').addEventListener('click', () => show('why'));
+  $('toGuide').addEventListener('click', () => openGuide(false));
   $('toBadges').addEventListener('click', () => { if (S.on && S.total > 0) finish(); show('badges'); });
   $('bBack').addEventListener('click', () => show('home'));
   $('rHome').addEventListener('click', () => show('home'));
@@ -844,7 +1008,7 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
   $('sBack').addEventListener('click', () => show('home'));
   $('wBack').addEventListener('click', () => show('home'));
   document.addEventListener('keydown', e => {
-    if (!S.on) return;
+    if (!S.on || $('help').classList.contains('on')) return;
     if (e.key === 'ArrowUp') { e.preventDefault(); answer(true); }
     else if (e.key === 'ArrowDown') { e.preventDefault(); answer(false); }
     else if ((e.key === 'r' || e.key === ' ') && !S.busy) { e.preventDefault(); playPair(); }
