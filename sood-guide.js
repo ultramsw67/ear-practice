@@ -83,26 +83,26 @@
     '.sg-wrap,.sg-peek{word-break:keep-all;overflow-wrap:anywhere}' +
     '.sg-fab{position:fixed;z-index:2147483000;width:62px;height:62px;border-radius:50%;border:3px solid #fff;background:#e6ecff;box-shadow:0 4px 14px rgba(31,42,68,.28);padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation}' +
     '.sg-fab svg{width:52px;height:52px;margin-top:2px}' +
-    '.sg-fab .sg-q{position:absolute;top:-4px;right:-4px;width:22px;height:22px;border-radius:50%;background:' + C.coral + ';color:#fff;font:800 14px/22px Pretendard,"Malgun Gothic",sans-serif;text-align:center}' +
+    '.sg-fab .sg-q{position:absolute;top:-4px;right:-4px;width:22px;height:22px;border-radius:50%;background:' + C.coral + ';color:#fff;font:800 14px/22px "Pretendard Variable",Pretendard,"Malgun Gothic",sans-serif;text-align:center}' +
     '.sg-fab.sg-nudge{animation:sgNudge .9s ease-in-out 3}' +
-    '.sg-peek{position:fixed;z-index:2147483000;max-width:230px;background:#fff;color:' + C.ink + ';border:2px solid ' + C.navy + ';border-radius:16px;padding:10px 14px;font:700 16px/1.45 Pretendard,"Malgun Gothic",sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.18);cursor:pointer}' +
+    '.sg-peek{position:fixed;z-index:2147483000;max-width:230px;background:#fff;color:' + C.ink + ';border:2px solid ' + C.navy + ';border-radius:16px;padding:10px 14px;font:700 16px/1.45 "Pretendard Variable",Pretendard,"Malgun Gothic",sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.18);cursor:pointer}' +
     '.sg-wrap{position:fixed;inset:0;z-index:2147483001;background:rgba(20,24,40,.42);display:flex;align-items:flex-end;justify-content:center;padding:12px}' +
     '.sg-panel{position:relative;width:100%;max-width:560px;max-height:calc(100% - 12px);display:flex;flex-direction:column;background:#fff;color:' + C.ink + ';border-radius:24px;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden;animation:sgUp .35s cubic-bezier(.2,.9,.3,1.2)}' +
     '.sg-top{display:flex;align-items:flex-end;gap:10px;padding:14px 16px 0;background:linear-gradient(180deg,#e6ecff,#fff)}' +
     '.sg-char{width:118px;height:118px;flex:none}.sg-char svg{width:100%;height:100%;overflow:visible}' +
-    '.sg-title{font:800 20px/1.3 Pretendard,"Malgun Gothic",sans-serif;padding-bottom:12px}' +
+    '.sg-title{font:800 20px/1.3 "Pretendard Variable",Pretendard,"Malgun Gothic",sans-serif;padding-bottom:12px}' +
     '.sg-title small{display:block;font-size:13px;font-weight:600;color:#5f6578;margin-top:3px}' +
     '.sg-body{overflow:auto;padding:6px 18px 4px}' +
-    '.sg-line{font:500 18px/1.6 Pretendard,"Malgun Gothic",sans-serif;padding:8px 10px;margin:4px 0;border-radius:12px;transition:background .2s,color .2s}' +
+    '.sg-line{font:500 18px/1.6 "Pretendard Variable",Pretendard,"Malgun Gothic",sans-serif;padding:8px 10px;margin:4px 0;border-radius:12px;transition:background .2s,color .2s}' +
     '.sg-line.sg-on{background:#fff3d6;color:#000;font-weight:700;box-shadow:inset 4px 0 0 ' + C.coral + '}' +
     '.sg-btns{display:flex;gap:8px;padding:12px 16px 16px;flex-wrap:wrap}' +
-    '.sg-btns button{flex:1 1 30%;min-height:48px;border:0;border-radius:14px;font:700 16px Pretendard,"Malgun Gothic",sans-serif;cursor:pointer;touch-action:manipulation}' +
+    '.sg-btns button{flex:1 1 30%;min-height:48px;border:0;border-radius:14px;font:700 16px "Pretendard Variable",Pretendard,"Malgun Gothic",sans-serif;cursor:pointer;touch-action:manipulation}' +
     '.sg-play{background:' + C.navy + ';color:#fff}.sg-stopb{background:#e9ecf4;color:' + C.ink + '}.sg-close{background:#fff;color:' + C.ink + ';border:2px solid #d5dae6!important}' +
-    '.sg-novoice{font:500 14px/1.5 Pretendard,sans-serif;color:#5f6578;padding:0 18px}' +
-    '.sg-wm{position:absolute;right:16px;top:12px;font:800 11px Pretendard,sans-serif;letter-spacing:.2em;opacity:.16}' +
+    '.sg-novoice{font:500 14px/1.5 "Pretendard Variable",Pretendard,sans-serif;color:#5f6578;padding:0 18px}' +
+    '.sg-wm{position:absolute;right:16px;top:12px;font:800 11px "Pretendard Variable",Pretendard,sans-serif;letter-spacing:.2em;opacity:.16}' +
     '.sg-blink{transform-box:fill-box;transform-origin:center;animation:sgBlink 4s infinite}' +
     '.sg-head{transform-origin:150px 225px;animation:sgNod .5s ease-in-out infinite}' +
-    '.sg-listener .sg-head{animation:sgSway 2.4s ease-in-out infinite}' +
+    '.sg-c-listener .sg-head{animation:sgSway 2.4s ease-in-out infinite}' +
     '.sg-arm{transform-origin:212px 252px;animation:sgConduct 2s cubic-bezier(.45,0,.3,1) infinite}' +
     '.sg-note{font-family:serif;font-weight:700;opacity:0;animation:sgRise 2s ease-out infinite}.sg-d2{animation-delay:.8s!important}' +
     '.sg-wave{fill:none;stroke:' + C.mint + ';stroke-width:4;transform-box:fill-box;transform-origin:center;animation:sgWave 1.6s ease-out infinite}' +
@@ -122,7 +122,7 @@
     '@keyframes sgNudge{0%,100%{transform:none}30%{transform:translateY(-10px) rotate(-8deg)}60%{transform:translateY(0) rotate(6deg)}}' +
     '@media print{.sg-fab,.sg-peek,.sg-wrap{display:none!important}}';
 
-  var opt, fab, peek, wrap, curKey, idleT, nudged = {}, speaking = false, lineEls = [], ko = null;
+  var opt, fab, peek, wrap, curKey, idleT, nudged = {}, hidden = false, speaking = false, lineEls = [], ko = null;
   var synth = window.speechSynthesis;
 
   function pickVoice() {
@@ -215,7 +215,7 @@
     if (wrap) close();
     wrap = el('div', 'sg-wrap');
     wrap.setAttribute('role', 'dialog'); wrap.setAttribute('aria-modal', 'true'); wrap.setAttribute('aria-label', '수드 도우미: ' + h.title);
-    var p = el('div', 'sg-panel sg-' + opt.char);
+    var p = el('div', 'sg-panel sg-c-' + opt.char);
     p.appendChild(el('span', 'sg-wm', '수트와후드'));
     var top = el('div', 'sg-top');
     top.appendChild(el('div', 'sg-char', SVG[opt.char]));
@@ -245,7 +245,7 @@
 
   function nudge() {
     var k = ctx();
-    if (wrap || peek || nudged[k] || busy() || document.hidden) return;
+    if (hidden || wrap || peek || nudged[k] || busy() || document.hidden) return;
     nudged[k] = 1;
     fab.classList.add('sg-nudge');
     peek = el('div', 'sg-peek', esc((opt.helps[k] && opt.helps[k].peek) || '도움이 필요하세요? 저를 누르면 읽어 드려요 🎵'));
@@ -279,7 +279,7 @@
   }
 
   var api = { init: init, open: open, close: close, stop: stop,
-    setVisible: function (v) { if (fab) fab.style.display = v ? '' : 'none'; if (!v) { hidePeek(); } },
+    setVisible: function (v) { hidden = !v; if (fab) fab.style.display = v ? '' : 'none'; if (!v) { hidePeek(); } },
     voiceName: voiceName,
     get speaking() { return speaking; }, version: '1.1.0' };
   window.SoodGuide = api;
