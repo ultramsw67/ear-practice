@@ -106,7 +106,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .stage.reveal svg.link line { opacity: 1; }
 .note { position: absolute; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 1.1em; background: var(--surface-2); color: var(--sub); border: 2px solid var(--line); transition: transform .45s cubic-bezier(.2,.8,.2,1), background .15s, color .15s, border-color .15s; }
 .note.n1 { left: 34%; } .note.n2 { left: 66%; }
-.note.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); box-shadow: 0 0 0 10px var(--accent-soft); }
+.note.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); outline: 10px solid var(--accent-soft); }
 .stage.reveal .note.n2.up { transform: translateY(-46px); background: var(--up); color: var(--accent-ink); border-color: var(--up); }
 .stage.reveal .note.n2.down { transform: translateY(46px); background: var(--down); color: #fff; border-color: var(--down); }
 .q { text-align: center; font-weight: 700; font-size: 1.04em; margin: 4px 0 12px; min-height: 1.6em; }
@@ -153,7 +153,7 @@ input[type="range"] { width: 100%; height: 40px; accent-color: var(--accent); }
 .why a { color: var(--accent); }
 /* 게임 요소 */
 .lvl { display: flex; align-items: center; gap: 14px; }
-.lvl .medal { flex: none; width: 52px; height: 52px; border-radius: 16px; background: linear-gradient(135deg, var(--accent), #7b5cff); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 1.15em; box-shadow: 0 6px 16px rgba(52,80,209,.3); }
+.lvl .medal { flex: none; width: 52px; height: 52px; border-radius: 16px; background: linear-gradient(135deg, var(--accent), #7b5cff); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 1.15em; }
 .lvl .info { flex: 1; min-width: 0; }
 .lvl .info b { display: block; font-size: 1.02em; }
 .lvl .info span { font-size: 0.8em; color: var(--sub); }
@@ -165,10 +165,10 @@ input[type="range"] { width: 100%; height: 40px; accent-color: var(--accent); }
 .mission b { display: block; font-size: 0.95em; }
 .mission span { font-size: 0.78em; color: var(--sub); }
 .mission.done .ico { background: var(--ok); color: #fff; }
-.flame { color: #f97316; }
+.flame { color: #c2410c; }
 .scorebox { margin-left: auto; margin-right: 10px; display: flex; align-items: center; gap: 8px; }
 .scorebox b { font-size: 1.15em; font-weight: 800; letter-spacing: -0.02em; }
-.combo { display: inline-block; font-size: 0.72em; font-weight: 800; color: #fff; background: #f97316; border-radius: 999px; padding: 4px 10px; transform: scale(0); transition: transform .2s cubic-bezier(.3,1.6,.5,1); }
+.combo { display: inline-block; font-size: 0.72em; font-weight: 800; color: #fff; background: #c2410c; border-radius: 999px; padding: 4px 10px; transform: scale(0); transition: transform .2s cubic-bezier(.3,1.6,.5,1); }
 .combo.on { transform: scale(1); }
 .pop { position: absolute; left: 86%; top: 50%; transform: translate(-50%, -50%); font-weight: 800; font-size: 1.3em; color: var(--ok); pointer-events: none; animation: popup .9s ease-out forwards; }
 @keyframes popup { 0% { opacity: 0; transform: translate(-50%, -30%) scale(.8); } 20% { opacity: 1; transform: translate(-50%, -80%) scale(1.1); } 100% { opacity: 0; transform: translate(-50%, -170%) scale(1); } }
@@ -646,15 +646,15 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
   function rankOf(lv) { let r = RANKS[0][1]; RANKS.forEach(([n, t]) => { if (lv >= n) r = t; }); return r; }
   const BADGES = [
     { id: 'first', icon: '첫', color: '#3450d1', title: '첫 연습', desc: '처음으로 한 판 마치기', ok: c => c.sessions >= 1 },
-    { id: 'streak3', icon: '3일', color: '#f97316', title: '3일 연속', desc: '3일 이어서 연습', ok: c => c.streak >= 3 },
-    { id: 'streak7', icon: '7일', color: '#ea580c', title: '일주일 연속', desc: '7일 이어서 연습', ok: c => c.streak >= 7 },
-    { id: 'streak30', icon: '30', color: '#c2410c', title: '한 달 연속', desc: '30일 이어서 연습', ok: c => c.streak >= 30 },
+    { id: 'streak3', icon: '3일', color: '#c2410c', title: '3일 연속', desc: '3일 이어서 연습', ok: c => c.streak >= 3 },
+    { id: 'streak7', icon: '7일', color: '#9a3412', title: '일주일 연속', desc: '7일 이어서 연습', ok: c => c.streak >= 7 },
+    { id: 'streak30', icon: '30', color: '#7c2d12', title: '한 달 연속', desc: '30일 이어서 연습', ok: c => c.streak >= 30 },
     { id: 'half', icon: '½', color: '#0d9488', title: '반음 쪼개기', desc: '반음의 1/2 알아듣기', ok: c => c.th <= 50 },
     { id: 'quarter', icon: '¼', color: '#0f766e', title: '4분의 1', desc: '반음의 1/4 알아듣기', ok: c => c.th <= 25 },
     { id: 'tenth', icon: '1/10', color: '#115e59', title: '튜너 귀', desc: '반음의 1/10 알아듣기', ok: c => c.th <= 10 },
     { id: 'twentieth', icon: '1/20', color: '#134e4a', title: '황금 귀', desc: '반음의 1/20 알아듣기', ok: c => c.th <= 5 },
-    { id: 'combo10', icon: '10', color: '#db2777', title: '콤보 10', desc: '한 판에 10번 연속 맞히기', ok: c => c.maxCombo >= 10 },
-    { id: 'combo20', icon: '20', color: '#be185d', title: '콤보 20', desc: '한 판에 20번 연속 맞히기', ok: c => c.maxCombo >= 20 },
+    { id: 'combo10', icon: '10', color: '#be185d', title: '콤보 10', desc: '한 판에 10번 연속 맞히기', ok: c => c.maxCombo >= 10 },
+    { id: 'combo20', icon: '20', color: '#9d174d', title: '콤보 20', desc: '한 판에 20번 연속 맞히기', ok: c => c.maxCombo >= 20 },
     { id: 'hour1', icon: '1h', color: '#7c3aed', title: '1시간', desc: '누적 연습 1시간', ok: c => c.total >= 3600e3 },
     { id: 'hour8', icon: '8h', color: '#6d28d9', title: '8시간 완주', desc: '누적 연습 8시간', ok: c => c.total >= GOAL_MS },
     { id: 'games50', icon: '50', color: '#475569', title: '50판', desc: '50판 마치기', ok: c => c.sessions >= 50 },
@@ -681,7 +681,7 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
       g.missions[today] = Date.now(); gain += 100; ctx.missions++;
       wins.push({ icon: '도전', color: '#b45309', title: '오늘의 도전 성공', desc: todayMission().t + ' · +100 XP' });
     }
-    if (S.score > g.bestScore) { if (g.bestScore > 0) wins.push({ kind: 'best', big: true, icon: '최고', color: '#db2777', title: '최고 점수 경신', desc: g.bestScore + '점 → ' + S.score + '점' }); g.bestScore = S.score; }
+    if (S.score > g.bestScore) { if (g.bestScore > 0) wins.push({ kind: 'best', big: true, icon: '최고', color: '#be185d', title: '최고 점수 경신', desc: g.bestScore + '점 → ' + S.score + '점' }); g.bestScore = S.score; }
     const bestTh = Math.min(...data.sessions.slice(0, -1).map(x => x.threshold), 999);
     if (data.sessions.length > 1 && th < bestTh) wins.push({ big: true, icon: frac(th), color: '#0d9488', title: '가장 섬세하게 들은 날', desc: '지금까지 중 가장 작은 차이를 알아들었어요' });
     BADGES.forEach(b => { if (!g.badges[b.id] && b.ok(ctx)) { g.badges[b.id] = Date.now(); wins.push({ big: true, icon: b.icon, color: b.color, title: '업적 · ' + b.title, desc: b.desc }); } });
