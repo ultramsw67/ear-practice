@@ -477,8 +477,8 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
   <section class="screen" id="settings">
     <div class="card">
       <div class="group"><span class="label">소리</span>
-        <div class="seg" data-key="timbre"><button data-v="clear">또렷한 소리</button><button data-v="reed">관악기</button><button data-v="soft">부드러운</button></div>
-        <p class="note-text">구분이 어렵다면 <b>또렷한 소리</b>가 가장 잘 들립니다.</p>
+        <div class="seg" data-key="timbre"><button data-v="clear">기본</button><button data-v="piano">피아노</button><button data-v="clarinet">관악기</button></div>
+        <p class="note-text">구분이 어렵다면 <b>기본</b> 소리가 가장 잘 들립니다. 피아노와 관악기(클라리넷)는 실제 악기를 녹음한 소리입니다.</p>
       </div>
       <div class="group"><span class="label">음역</span>
         <div class="seg" data-key="register"><button data-v="low">낮게</button><button data-v="mid">가운데</button><button data-v="high">높게</button></div>
@@ -511,7 +511,7 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
   </section>
 
   <canvas id="confetti" aria-hidden="true"></canvas>
-  <footer>연습 도구이며 치료·예방 효과를 약속하지 않습니다 · 수트와후드 SOOD 음감 연습 v1.5.3</footer>
+  <footer>연습 도구이며 치료·예방 효과를 약속하지 않습니다 · 수트와후드 SOOD 음감 연습 v1.6.0<br>피아노·클라리넷 소리: FluidR3 GM (Frank Wen, MIT) · midi-js-soundfonts (CC BY 3.0)</footer>
 </div>
 
 <script src="sood-guide.js"></script>
@@ -526,8 +526,14 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
   const $ = id => document.getElementById(id);
 
   // ---------- 저장 ----------
+  // v1.6.0 소리 이름 바뀜: 예전 관악기(reed) → 클라리넷, 부드러운(soft) → 기본
+  function fixTimbre(s) {
+    s.timbre = { reed: 'clarinet', soft: 'clear' }[s.timbre] || s.timbre;
+    if (!['clear', 'piano', 'clarinet'].includes(s.timbre)) s.timbre = 'clear';
+    return s;
+  }
   function load() {
-    try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && Array.isArray(d.sessions)) return { sessions: d.sessions, settings: Object.assign({}, DEF, d.settings), game: Object.assign({ xp: 0, bestScore: 0, badges: {}, missions: {} }, d.game) }; } catch (e) { }
+    try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && Array.isArray(d.sessions)) return { sessions: d.sessions, settings: fixTimbre(Object.assign({}, DEF, d.settings)), game: Object.assign({ xp: 0, bestScore: 0, badges: {}, missions: {} }, d.game) }; } catch (e) { }
     return { sessions: [], settings: Object.assign({}, DEF), game: { xp: 0, bestScore: 0, badges: {}, missions: {} } };
   }
   const data = load();
@@ -541,13 +547,64 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
   function minText(ms) { const m = Math.round(ms / 60000); return m < 60 ? m + '분' : Math.floor(m / 60) + '시간 ' + (m % 60) + '분'; }
 
   // ---------- 소리 ----------
-  // 또렷한 소리: 배음을 고르게 많이 넣어 음높이가 분명하게 들리게 하고, 아주 높은 배음만 걸러 귀가 아프지 않게 한다
-  const TIMBRES = {
-    clear: { h: n => 1 / n, count: 16, attack: 0.012, cut: 9 },
-    reed:  { h: n => (n % 2 ? 1 : 0.35) / n, count: 12, attack: 0.03, cut: 7 },
-    soft:  { h: n => [1, 0.55, 0.32, 0.18, 0.1, 0.05][n - 1] || 0, count: 6, attack: 0.04, cut: 6 }
-  };
-  let ac = null, master = null; const waves = {};
+  // 기본: 배음을 고르게 많이 넣어 음높이가 분명하게 들리게 하고, 아주 높은 배음만 걸러 귀가 아프지 않게 한다
+  const SYNTH = { h: n => 1 / n, count: 16, attack: 0.012, cut: 9 };
+  // 피아노·관악기: 실제 악기 녹음(sounds/, FluidR3 GM). 3반음마다 녹음이 있고 그 사이 음은 빠르기를 바꿔 낸다
+  // 관악기는 클라리넷 — 관악단 중심 악기이고 비브라토 없이 불어 녹음 음높이 흔들림이 가장 작음(4~7센트, 색소폰 14~44)
+  const INST = { piano: 'acoustic_grand_piano', clarinet: 'clarinet' };
+  const bufs = {}, ready = {};
+  let ac = null, master = null, wave = null;
+  // 악기 녹음을 한 번만 읽어 둔다. 끝나면 풀리는 약속(Promise)을 돌려준다. 실패해도 기본 소리로 넘어가니 멈추지 않는다
+  function loadInst(name) {
+    if (!INST[name] || !ac || !ac.decodeAudioData) return Promise.resolve();
+    if (ready[name]) return ready[name];
+    const file = INST[name], got = () => (window.RP_SOUNDS || {})[file];
+    ready[name] = new Promise(done => {
+      const decode = () => {
+        const set = got();
+        if (!set) { done(); return; }
+        bufs[name] = {};
+        Promise.all(Object.keys(set).map(k => new Promise(fin => {
+          try {
+            const bin = atob(set[k].split(',')[1]), u = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+            const ok = b => {
+              // 녹음 앞의 빈 소리를 건너뛰고, 가장 큰 소리를 기준으로 크기를 맞춘다
+              const d = b.getChannelData(0); let on = 0, peak = 0;
+              for (let i = 0; i < d.length; i++) { const v = Math.abs(d[i]); if (!on && v > 0.02) on = i; if (v > peak) peak = v; }
+              bufs[name][k] = { buf: b, hz: midiHz(+k), on: on / b.sampleRate, level: 0.3 / Math.max(peak, 0.05) };
+              fin();
+            };
+            const p = ac.decodeAudioData(u.buffer, ok, fin);
+            if (p && p.catch) p.catch(fin);
+          } catch (e) { fin(); }
+        }))).then(done);
+      };
+      if (got()) { decode(); return; }
+      const sc = document.createElement('script');
+      sc.src = 'sounds/' + file + '.js';
+      sc.onload = decode;
+      sc.onerror = () => { delete ready[name]; done(); };
+      document.head.appendChild(sc);
+    });
+    return ready[name];
+  }
+  // 고른 악기 녹음이 준비되면 fn 을 부른다. 너무 늦으면(3초) 기본 소리로 그냥 낸다
+  function whenReady(fn) {
+    try { audio(); } catch (e) { return; }
+    const name = data.settings.timbre;
+    if (!INST[name] || bufs[name] && Object.keys(bufs[name]).length) { fn(); return; }
+    let fired = false;
+    const go = () => { if (!fired) { fired = true; fn(); } };
+    loadInst(name).then(go); setTimeout(go, 3000);
+  }
+  // hz 에 가장 가까운 녹음. 두 소리를 견줄 때는 ref 를 같게 줘서 같은 녹음으로 낸다 (녹음마다 다른 미세한 음 차이가 섞이지 않게)
+  function pick(hz) {
+    const b = bufs[data.settings.timbre]; if (!b) return null;
+    const m = 69 + 12 * Math.log2(hz / 440); let best = null, bd = 99;
+    for (const k in b) { const d = Math.abs(+k - m); if (d < bd) { bd = d; best = b[k]; } }
+    return bd <= 6 ? best : null;
+  }
   function audio() {
     if (!ac) {
       const AC = window.AudioContext || window.webkitAudioContext;
@@ -560,31 +617,43 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     }
     if (ac.state === 'suspended') ac.resume();
     master.gain.value = data.settings.volume;
+    loadInst(data.settings.timbre);
     return ac;
   }
-  function wave(name) {
-    if (!waves[name]) {
-      const t = TIMBRES[name], real = new Float32Array(t.count + 1);
-      for (let n = 1; n <= t.count; n++) real[n] = t.h(n);
-      waves[name] = ac.createPeriodicWave(real, new Float32Array(real.length));
+  function synthWave() {
+    if (!wave) {
+      const real = new Float32Array(SYNTH.count + 1);
+      for (let n = 1; n <= SYNTH.count; n++) real[n] = SYNTH.h(n);
+      wave = ac.createPeriodicWave(real, new Float32Array(real.length));
     }
-    return waves[name];
+    return wave;
   }
   // 지금 울리는 소리(문제·예시) — 수드 도우미가 문제 소리와 겹치지 않게 쓴다
   const live = new Set();
-  function tone(freq, start, dur) {
+  function tone(freq, start, dur, ref) {
     if (window.SoodGuide && SoodGuide.speaking) SoodGuide.stop();
-    const t = TIMBRES[data.settings.timbre] || TIMBRES.clear;
-    const o = ac.createOscillator(), g = ac.createGain(), f = ac.createBiquadFilter ? ac.createBiquadFilter() : null;
-    o.setPeriodicWave(wave(data.settings.timbre in TIMBRES ? data.settings.timbre : 'clear'));
-    o.frequency.value = freq;
-    g.gain.setValueAtTime(0, start);
-    g.gain.linearRampToValueAtTime(0.32, start + t.attack);
-    g.gain.setValueAtTime(0.32, start + dur - 0.07);
-    g.gain.linearRampToValueAtTime(0, start + dur);
-    if (f) { f.type = 'lowpass'; f.frequency.value = Math.min(7000, freq * t.cut); f.Q.value = 0.5; o.connect(f); f.connect(g); }
-    else o.connect(g);
-    g.connect(master); o.start(start); o.stop(start + dur + 0.02);
+    const s = pick(ref || freq), g = ac.createGain();
+    let o;
+    if (s) {
+      o = ac.createBufferSource(); o.buffer = s.buf; o.playbackRate.value = freq / s.hz;
+      g.gain.setValueAtTime(0, start);
+      g.gain.linearRampToValueAtTime(s.level, start + 0.008);
+      g.gain.setValueAtTime(s.level, start + dur - 0.07);
+      g.gain.linearRampToValueAtTime(0, start + dur);
+      o.connect(g); g.connect(master); o.start(start, s.on); o.stop(start + dur + 0.02);
+    } else {
+      const f = ac.createBiquadFilter ? ac.createBiquadFilter() : null;
+      o = ac.createOscillator();
+      o.setPeriodicWave(synthWave());
+      o.frequency.value = freq;
+      g.gain.setValueAtTime(0, start);
+      g.gain.linearRampToValueAtTime(0.32, start + SYNTH.attack);
+      g.gain.setValueAtTime(0.32, start + dur - 0.07);
+      g.gain.linearRampToValueAtTime(0, start + dur);
+      if (f) { f.type = 'lowpass'; f.frequency.value = Math.min(7000, freq * SYNTH.cut); f.Q.value = 0.5; o.connect(f); f.connect(g); }
+      else o.connect(g);
+      g.connect(master); o.start(start); o.stop(start + dur + 0.02);
+    }
     live.add(o); o.onended = () => live.delete(o);
   }
   function hushTones() { live.forEach(o => { try { o.stop(); } catch (e) { } }); live.clear(); }
@@ -636,12 +705,14 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
 
   function playPair(after) {
     if (!S.cur) return;
-    try { audio(); } catch (e) { return; }
+    setAnswerable(false);
+    const token = ++S.playToken;
+    whenReady(() => { if (token === S.playToken) playPairNow(after, token); });
+  }
+  function playPairNow(after, token) {
     const dur = parseFloat(data.settings.length), gap = 0.5, lead = 0.12;
     const t0 = ac.currentTime + lead;
-    tone(S.cur.base, t0, dur); tone(S.cur.second, t0 + dur + gap, dur);
-    const token = ++S.playToken;
-    setAnswerable(false);
+    tone(S.cur.base, t0, dur, S.cur.base); tone(S.cur.second, t0 + dur + gap, dur, S.cur.base);
     const mark = (id, on) => $(id).classList.toggle('on', on);
     const at = (s, fn) => setTimeout(() => { if (token === S.playToken) fn(); }, s * 1000);
     at(lead, () => mark('d1', true));
@@ -723,8 +794,11 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
   }
   function melBase() { const [lo] = RANGES[data.settings.register] || RANGES.mid; return lo + 3; }
   function playMelody(a, dotsEl, after) {
-    try { audio(); } catch (e) { return; }
-    const dur = 0.55, gap = 0.12, t0 = ac.currentTime + 0.15, tok = ++M.token, base = melBase();
+    const tok = ++M.token;
+    whenReady(() => { if (tok === M.token) playMelodyNow(a, dotsEl, after, tok); });
+  }
+  function playMelodyNow(a, dotsEl, after, tok) {
+    const dur = 0.55, gap = 0.12, t0 = ac.currentTime + 0.15, base = melBase();
     const dots = dotsEl ? dotsEl.querySelectorAll('i') : [];
     dots.forEach(d => d.className = '');
     a.forEach((v, i) => {
@@ -914,8 +988,11 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     $('gStage').querySelectorAll('.gnote').forEach(d => { const v = +d.dataset.m; d.style.top = 'calc(50% ' + (v >= 0 ? '- ' : '+ ') + Math.abs(v) * 9 + 'px)'; });
   }
   function gPlay(notes, base, after) {
-    try { audio(); } catch (e) { return; }
-    const dur = 0.7, gap = notes.length > 2 ? 0.1 : 0.45, t0 = ac.currentTime + 0.1, tok = ++G.token;
+    const tok = ++G.token;
+    whenReady(() => { if (tok === G.token) gPlayNow(notes, base, after, tok); });
+  }
+  function gPlayNow(notes, base, after, tok) {
+    const dur = 0.7, gap = notes.length > 2 ? 0.1 : 0.45, t0 = ac.currentTime + 0.1;
     const ds = $('gStage').querySelectorAll('.gnote');
     notes.forEach((m, i) => {
       const at = i * (dur + gap);
@@ -987,9 +1064,9 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     if (R.on && R.pausedAt) { const d = Date.now() - R.pausedAt; R.endAt += d; R.startAt += d; R.pausedAt = 0; clearInterval(R.timer); R.timer = setInterval(R.tick, 500); R.tick(); }
     else R.pausedAt = 0;
   }
-  const helpDemo = up => { try { audio(); } catch (e) { return; } const t = ac.currentTime + 0.05; tone(midiHz(up ? 60 : 67), t, 0.7); tone(midiHz(up ? 67 : 60), t + 1.15, 0.7); };
+  const helpDemo = up => whenReady(() => { const t = ac.currentTime + 0.05; tone(midiHz(up ? 60 : 67), t, 0.7); tone(midiHz(up ? 67 : 60), t + 1.15, 0.7); });
   // 예시 가락은 tone 으로 직접 낸다 (playMelody 는 문제 진행 순번을 바꿔 연습이 멈출 수 있음)
-  const melDemo = () => { try { audio(); } catch (e) { return; } const t = ac.currentTime + 0.05, b = melBase(); MG.ex.forEach((v, i) => tone(midiHz(b + SCALE[v]), t + i * 0.67, 0.55)); };
+  const melDemo = () => whenReady(() => { const t = ac.currentTime + 0.05, b = melBase(); MG.ex.forEach((v, i) => tone(midiHz(b + SCALE[v]), t + i * 0.67, 0.55)); });
   function onGuideOpen() {
     pauseRun(S); pauseRun(M);
     const body = document.querySelector('.sg-wrap .sg-body'), scr = document.querySelector('.screen.on');
@@ -1334,9 +1411,10 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     $('vol').value = data.settings.volume;
   }
   function sample() {
-    try { audio(); } catch (e) { return; }
-    const [lo, hi] = RANGES[data.settings.register] || RANGES.mid, d = parseFloat(data.settings.length), m = Math.round((lo + hi) / 2);
-    tone(midiHz(m), ac.currentTime + 0.05, d); tone(midiHz(m + 1), ac.currentTime + 0.55 + d, d);
+    whenReady(() => {
+      const [lo, hi] = RANGES[data.settings.register] || RANGES.mid, d = parseFloat(data.settings.length), m = Math.round((lo + hi) / 2);
+      tone(midiHz(m), ac.currentTime + 0.05, d, midiHz(m)); tone(midiHz(m + 1), ac.currentTime + 0.55 + d, d, midiHz(m));
+    });
   }
   document.querySelectorAll('.seg').forEach(seg => seg.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
