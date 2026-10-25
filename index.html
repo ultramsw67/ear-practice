@@ -504,13 +504,13 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
         <div class="seg" data-key="sguide"><button data-v="on">보이기</button><button data-v="off">숨기기</button></div>
         <p class="note-text">화면 구석의 수드 단추를 누르면 그 화면 도움말을 읽어 드립니다. 숨겨도 연습 중 「어떻게 하나요?」는 그대로 됩니다.</p>
       </div>
-      <p class="note-text">이어폰이나 헤드폰을 끼면 훨씬 잘 들립니다. 기록은 이 기기 안에만 저장됩니다.</p>
+      <p class="note-text">이어폰이나 헤드폰을 끼면 훨씬 잘 들립니다. 기록은 이 기기 안에만 저장됩니다. 앱이 몇 번 쓰였는지 전체 숫자만 세고, 이름·점수·기록은 보내지 않습니다.</p>
     </div>
     <button class="primary" id="sBack">완료</button>
   </section>
 
   <canvas id="confetti" aria-hidden="true"></canvas>
-  <footer>연습 도구이며 치료·예방 효과를 약속하지 않습니다 · 수트와후드 SOOD 음감 연습 v1.6.1<br>피아노·클라리넷 소리: FluidR3 GM (Frank Wen, MIT) · midi-js-soundfonts (CC BY 3.0)</footer>
+  <footer>연습 도구이며 치료·예방 효과를 약속하지 않습니다 · 수트와후드 SOOD 음감 연습 v1.6.2<br>피아노·클라리넷 소리: FluidR3 GM (Frank Wen, MIT) · midi-js-soundfonts (CC BY 3.0)</footer>
 </div>
 
 <script src="sood-guide.js"></script>
@@ -537,6 +537,39 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
   }
   const data = load();
   function save() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { } }
+
+  // ---------- 전체 사용 횟수 (v1.6.2, 2026-10-25 "사용 통계" → "붙여줘") ----------
+  // 리듬 연습과 같은 방식: GoatCounter(sood-ear, 쿠키 없음)에 전체 숫자만 센다.
+  // 보내는 것: 그날 앱을 열었다는 사실(기기마다 하루 한 번)·기록된 판을 마쳤다는 사실과 그 훈련·소리 종류. 점수·수준·이름·기기 번호는 보내지 않는다.
+  // 실주소(ultramsw67.github.io)에서만 — 파일로 연 것·검사 서버·자동 검사(webdriver)·localStorage sood-ear-nostat=true 기기는 세지 않음
+  const STAT_URL = 'https://sood-ear.goatcounter.com/count';
+  function statOn() {
+    try {
+      if (window.earStatTest) return true;                                   // 검사용(요청은 검사가 가로챔)
+      if (location.hostname !== 'ultramsw67.github.io' || navigator.webdriver) return false;
+      return localStorage.getItem('sood-ear-nostat') !== 'true';
+    } catch (e) { return false; }
+  }
+  function statSend(p, t, ev) {
+    const url = STAT_URL + '?p=' + encodeURIComponent(p) + '&t=' + encodeURIComponent(t) + (ev ? '&e=true' : '') + '&rnd=' + Math.random().toString(36).slice(2, 8);
+    try { if (!(navigator.sendBeacon && navigator.sendBeacon(url))) (new Image()).src = url; } catch (e) { try { (new Image()).src = url; } catch (e2) { } }
+  }
+  function stat(kind) {
+    if (!statOn()) return;
+    try {
+      if (kind === 'open') {                                                 // 기기마다 하루 한 번 = 그날 쓴 기기 수
+        const d = new Date(), day = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+        if (localStorage.getItem('sood-ear-statDay') === day) return;
+        localStorage.setItem('sood-ear-statDay', day);
+        statSend('/', '앱 열기 (기기마다 하루 한 번)', false); return;
+      }
+      const name = kind === 'melody' ? '선율 기억' : '음정 듣기';
+      const snd = { clear: '기본', piano: '피아노', clarinet: '클라리넷' }[data.settings.timbre] || '기본';
+      const L = [['훈련/' + name, '훈련 마침 · ' + name], ['소리/' + snd, '소리 · ' + snd]];
+      L.forEach((x, i) => setTimeout(() => statSend(x[0], x[1], true), i * 300));   // 한꺼번에 보내면 일부가 빠질 수 있어 0.3초씩 띄움
+    } catch (e) { }
+  }
+  window.__earStat = stat; // 검사용
 
   // ---------- 쉬운 말 ----------
   // 100센트 = 반음. "반음의 1/4" 처럼 말한다
@@ -894,6 +927,7 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
     const notes = M.best ? MLEVELS[M.best][0] : 0;
     if (enough) data.sessions.push({ mode: 'melody', ts: Date.now(), level: M.best, notes, correct: M.correct, total: M.total, ms: Math.min(Date.now() - M.startAt, 30 * 60000), score: M.score, maxCombo: M.maxCombo });
     const wins = enough ? reward({ mode: 'melody', prev, notes }) : [];
+    if (enough) stat('melody');
     save(); lastMode = 'melody';
     $('rPoints').textContent = M.score + (wins.some(w => w.kind === 'best') ? ' · 최고 기록' : '');
     $('rCombo').textContent = M.maxCombo;
@@ -1204,6 +1238,7 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
       data.sessions.push({ ts: Date.now(), threshold: Math.round(th * 10) / 10, correct: S.correct, total: S.total, register: data.settings.register, ms: Math.min(Date.now() - S.startAt, 30 * 60000), score: S.score, maxCombo: S.maxCombo });
     }
     const wins = enough ? reward({ mode: 'pitch', th, prev }) : [];
+    if (enough) stat('pitch');
     save(); lastMode = 'pitch';
     $('rPoints').textContent = S.score + (enough && S.score >= data.game.bestScore && S.score > 0 && wins.some(w => w.kind === 'best') ? ' · 최고 기록' : '');
     $('rCombo').textContent = S.maxCombo;
@@ -1469,6 +1504,8 @@ footer { margin-top: 28px; color: var(--faint); font-size: 0.74em; text-align: c
   });
 
   applyLook(); renderHome(); renderGame();
+  stat('open');
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) stat('open'); });   // 뒤로 보내 둔 앱을 다음 날 다시 열 때
 
   // 수드 도우미 시작: ② 헤드폰 쓴 수드, 오른쪽 아래 (왼쪽엔 「다시 듣기」가 있어 겹치지 않게)
   // 숨기기를 골라도 저절로 나오는 말풍선이 뜨지 않도록 그때는 바쁜 것으로 알린다 (창을 직접 열면 읽음)
